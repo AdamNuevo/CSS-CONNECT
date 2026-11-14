@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile · CCS Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="profile" data-title="Profile">
+<div class="app">
+  <aside id="sidebar"></aside>
+  <div class="main">
+    <header id="topbar"></header>
+    <main class="content">
+      <p class="lead">Your account information</p>
+
+      <section class="card">
+        <div class="card-head" style="margin-bottom:12px"><h2>Profile</h2></div>
+        <div class="profile-top">
+          <div class="profile-id">
+            <span class="avatar xl">RA</span>
+            <div><h3>Ms. Rosa Alvarez</h3><p>Registrar, Quezon City University</p></div>
+          </div>
+          <button class="btn" data-toast="Profile editing is not available in this preview."><i data-i="pencil"></i>Edit profile</button>
+        </div>
+        <dl class="info-grid">
+          <div><dt>Full name</dt><dd>Ms. Rosa Alvarez</dd><dt>Department</dt><dd>Registrar's Office</dd></div>
+          <div><dt>University email</dt><dd>rosa.alvarez@qcu.edu.ph</dd><dt>Contact number</dt><dd>[Office contact number]</dd></div>
+          <div><dt>Position</dt><dd>Registrar</dd><dt>Profile photo</dt><dd>Uploaded</dd></div>
+        </dl>
+      </section>
+
+      <section class="card">
+        <div class="card-head" style="margin-bottom:0"><h2>Security</h2></div>
+        <div class="security-row">
+          <div><strong>Password</strong><small>Change it regularly to keep your account safe.</small></div>
+          <button class="btn" data-toast="Password change is not available in this preview."><i data-i="lock"></i>Change password</button>
+        </div>
+        <div class="security-row" style="margin-top:6px">
+          <strong style="font-weight:400">Sign out</strong>
+          <button class="btn danger" data-toast="Signed out (preview)."><i data-i="logout"></i>Log out</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

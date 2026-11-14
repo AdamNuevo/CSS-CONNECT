@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · CCS Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="dashboard" data-title="Dashboard">
+<div class="app">
+  <aside id="sidebar"></aside>
+  <div class="main">
+    <header id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <p class="lead">Account management for the College of Computer Studies</p>
+        <div style="display:flex;gap:8px">
+          <a class="btn primary lg" href="import.html"><i data-i="upload"></i>Import accounts</a>
+          <a class="btn lg" href="add-person.html"><i data-i="plus"></i>Add person</a>
+        </div>
+      </div>
+
+      <section class="grid-4" aria-label="Summary">
+        <div class="card stat-card">
+          <span class="stat-label">Total accounts</span><span class="stat-icon"><i data-i="users"></i></span>
+          <span class="stat-value">921</span><span class="stat-note">Students, faculty and dean</span>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-label">Activated</span><span class="stat-icon"><i data-i="check"></i></span>
+          <span class="stat-value">790</span><span class="stat-note">Changed default password</span>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-label">Not yet signed in</span><span class="stat-icon"><i data-i="clock"></i></span>
+          <span class="stat-value">131</span><span class="stat-note">Still on default password</span>
+        </div>
+        <div class="card stat-card">
+          <span class="stat-label">Import issues</span><span class="stat-icon"><i data-i="x"></i></span>
+          <span class="stat-value">3</span><span class="stat-note">Rows to fix</span>
+        </div>
+      </section>
+
+      <section class="grid-3">
+        <div class="card">
+          <h2>Activation by role</h2>
+          <div class="role-row"><span>Students</span><div class="bar"><i data-w="86" style="background:#2540c8"></i></div><span class="pct">86%</span></div>
+          <div class="role-row"><span>Faculty</span><div class="bar"><i data-w="97" style="background:#7b8fe0"></i></div><span class="pct">97%</span></div>
+          <div class="role-row"><span>Dean</span><div class="bar"><i data-w="100" style="background:#adbbf3"></i></div><span class="pct">100%</span></div>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-bottom:8px">Latest import</h2>
+          <div class="kv"><span>Filename</span><span>students-2025-2026.csv</span></div>
+          <div class="kv"><span>Date</span><span>Nov 5, 2026</span></div>
+          <div class="kv"><span>Imported</span><span>886 accounts</span></div>
+          <div class="kv"><span>Skipped</span><span>3 rows with errors</span></div>
+          <a class="btn primary" href="import.html" style="margin-top:10px"><i data-i="upload"></i>Import more</a>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-bottom:6px">Needs attention</h2>
+          <div class="attn"><div><strong>Reset password requests</strong><small>Maria Lopez · 23-0098</small></div><span class="badge warn">New</span></div>
+          <div class="attn"><div><strong>Wrong email in record</strong><small>Rico Navarro · 23-0211</small></div><span class="badge bad">Fix</span></div>
+          <div class="attn"><div><strong>Activation reminder</strong><small>Not yet signed in: 131</small></div><span class="badge ok">Done</span></div>
+        </div>
+      </section>
+
+      <section class="card" style="padding-bottom:10px">
+        <div class="card-head" style="margin-bottom:6px"><h2>Recently added</h2><a class="btn" href="students.html">All students</a></div>
+        <table class="table roomy">
+          <thead><tr><th style="width:25%">Person</th><th style="width:25%">Role</th><th style="width:25%">Created</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><span class="person"><span class="avatar lg">EB</span><span>Ella Bautista<small style="color:var(--text);font-size:12px">23-0377</small></span></span></td><td>Student</td><td>Nov 3</td><td><span class="badge ok">Activated</span></td></tr>
+            <tr><td><span class="person"><span class="avatar lg">MT</span><span>Marco Tan<small style="color:var(--text);font-size:12px">23-0150</small></span></span></td><td>Student</td><td>Nov 3</td><td><span class="badge warn">Not signed in</span></td></tr>
+            <tr><td><span class="person"><span class="avatar lg">PG</span><span>Prof. Grace Tolentino<small style="color:var(--text);font-size:12px">FAC-2025-030</small></span></span></td><td>Faculty</td><td>Nov 2</td><td><span class="badge ok">Activated</span></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

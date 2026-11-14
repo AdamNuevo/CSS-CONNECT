@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Faculty · CCS Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="faculty" data-title="People">
+<div class="app">
+  <aside id="sidebar"></aside>
+  <div class="main">
+    <header id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <p class="lead">Create, update and deactivate accounts</p>
+        <a class="btn primary lg" href="add-person.html"><i data-i="plus"></i>Add person</a>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="false" data-href="students.html">Students (886)</button>
+        <button role="tab" class="active" aria-selected="true">Faculty (34)</button>
+      </div>
+
+      <section class="card">
+        <div class="filters">
+          <label class="field-sm">Department
+            <select class="select" id="f1"><option value="">All departments</option><option>IT Program</option><option>CS Program</option><option>IS Program</option></select>
+          </label>
+          <label class="field-sm">Account
+            <select class="select" id="f2"><option value="">All accounts</option><option>Activated</option><option>Not signed in</option><option>Reset requested</option><option>Deactivated</option></select>
+          </label>
+        </div>
+
+        <table class="table roomy">
+          <thead><tr><th style="width:15%">Faculty ID</th><th style="width:23%">Name</th><th style="width:14%">Department</th><th style="width:26%">Email</th><th style="width:12%">Account</th><th></th></tr></thead>
+          <tbody id="peopleBody"></tbody>
+        </table>
+
+        <div class="table-foot">
+          <span id="showing">Showing 1-7 of 34 entries</span>
+          <div class="pager"><button class="btn" data-pager>Previous</button><button class="btn" data-pager>Next</button></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
