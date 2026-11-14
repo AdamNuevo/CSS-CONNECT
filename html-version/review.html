@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review import · CCS Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="review" data-title="Review import">
+<div class="app">
+  <aside id="sidebar"></aside>
+  <div class="main">
+    <header id="topbar"></header>
+    <main class="content">
+
+      <div class="page-head">
+        <p class="lead">Review the file before accounts are created</p>
+        <div style="display:flex;gap:8px">
+          <a class="btn lg" href="import.html">Change file</a>
+          <button class="btn primary lg" id="createBtn"><i data-i="check"></i>Create 886 accounts</button>
+        </div>
+      </div>
+
+      <section class="grid-3 stat" aria-label="Import summary">
+        <div class="card stat-card"><span class="stat-label">Rows in file</span><span class="stat-icon"><i data-i="file"></i></span><span class="stat-value">889</span><span class="stat-note" id="fileName">students-2025-2026.csv</span></div>
+        <div class="card stat-card"><span class="stat-label">Ready to create</span><span class="stat-icon"><i data-i="check"></i></span><span class="stat-value">886</span><span class="stat-note">No problems found</span></div>
+        <div class="card stat-card"><span class="stat-label">Need fixing</span><span class="stat-icon"><i data-i="x"></i></span><span class="stat-value">3</span><span class="stat-note">Will be skipped</span></div>
+      </section>
+
+      <section class="card">
+        <table class="table roomy">
+          <thead><tr><th style="width:9%">Row</th><th style="width:15%">ID number</th><th style="width:18%">Name</th><th style="width:24%">Email</th><th style="width:18%">Program and section</th><th>Check</th></tr></thead>
+          <tbody id="reviewBody"></tbody>
+        </table>
+        <div class="table-foot">
+          <span>Showing 1-6 of 889 entries</span>
+          <div class="pager"><button class="btn" data-pager>Previous</button><button class="btn" data-pager>Next</button></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

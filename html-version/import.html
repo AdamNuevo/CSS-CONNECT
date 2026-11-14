@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Import accounts · CCS Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="import" data-title="Import accounts">
+<div class="app">
+  <aside id="sidebar"></aside>
+  <div class="main">
+    <header id="topbar"></header>
+    <main class="content">
+      <p class="lead">Create student, faculty and dean accounts in bulk</p>
+
+      <div class="import-grid">
+        <section class="card">
+          <div class="card-head">
+            <h2>Upload account list</h2>
+            <button class="btn" data-action="download-template"><i data-i="download"></i>Download template</button>
+          </div>
+          <div class="dropzone" id="dropzone">
+            <i data-i="upload" class="big"></i>
+            <h3 id="dzTitle">Drop your CSV file here</h3>
+            <p id="dzSub">or choose a file from your computer. Max 5 MB, up to 2,000 rows.</p>
+            <button class="btn primary" id="chooseFile" type="button">Choose file</button>
+            <input type="file" id="fileInput" accept=".csv,text/csv" hidden>
+          </div>
+        </section>
+
+        <aside class="card">
+          <h2>How it works</h2>
+          <ol class="steps">
+            <li><span class="step-n">1</span><div><strong>Download the template</strong><small>Columns: ID number, full name, email, program, year, section, role.</small></div></li>
+            <li><span class="step-n">2</span><div><strong>Fill in the list</strong><small>Use the official list from the registrar. One row per person.</small></div></li>
+            <li><span class="step-n">3</span><div><strong>Upload and review</strong><small>We check every row before anything is created.</small></div></li>
+            <li><span class="step-n">4</span><div><strong>Confirm</strong><small>Accounts are created with a default password. Users must change it on first sign-in.</small></div></li>
+          </ol>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

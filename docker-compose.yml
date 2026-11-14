@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ccs
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      POSTGRES_DB: ccs_connect
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # no published port: only the api container can reach the database.
+    # To look inside it yourself: docker compose exec db psql -U ccs ccs_connect
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ccs -d ccs_connect"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://ccs:${DB_PASSWORD}@db:5432/ccs_connect
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      SEED_REGISTRAR_EMAIL: ${SEED_REGISTRAR_EMAIL:-rosa.alvarez@qcu.edu.ph}
+      SEED_REGISTRAR_PASSWORD: ${SEED_REGISTRAR_PASSWORD:?Set SEED_REGISTRAR_PASSWORD in .env}
+      SEED_DEMO: ${SEED_DEMO:-false}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+    # not published: only the web container can reach the API
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-8080}:80"
+
+  # Optional database viewer for development. Not started by default:
+  #   docker compose --profile tools up -d adminer     then open http://localhost:8081
+  adminer:
+    image: adminer:4
+    profiles: ["tools"]
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - "127.0.0.1:8081:8080" # only this computer can open it
+
+volumes:
+  db-data:

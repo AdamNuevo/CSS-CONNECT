@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add person · CCS Connect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="add" data-title="Add person">
+<div class="app">
+  <aside id="sidebar"></aside>
+  <div class="main">
+    <header id="topbar"></header>
+    <main class="content">
+      <p class="lead">Add one person, for example a late enrollee</p>
+
+      <form class="card form-card" id="addForm" novalidate>
+        <div class="group">
+          <label>Role</label>
+          <div class="pills" role="group" aria-label="Role">
+            <button type="button" class="pill active" data-role="Student" aria-pressed="true">Student</button>
+            <button type="button" class="pill" data-role="Faculty" aria-pressed="false">Faculty</button>
+            <button type="button" class="pill" data-role="Dean" aria-pressed="false">Dean</button>
+          </div>
+        </div>
+
+        <div class="group"><label for="idNumber" id="idLabel">Student number</label><input class="input" id="idNumber" placeholder="e.g. 24-0123" autocomplete="off"></div>
+        <div class="group"><label for="fullName">Full name</label><input class="input" id="fullName" placeholder="Last name, first name" autocomplete="off"></div>
+        <div class="group"><label for="email">University email</label><input class="input" id="email" type="email" placeholder="name@qcu.edu.ph" autocomplete="off"></div>
+
+        <div class="row-3" id="studentFields">
+          <div class="group"><label for="program">Program</label><input class="input" id="program" placeholder="BSIT"></div>
+          <div class="group"><label for="year">Year</label><input class="input" id="year" placeholder="1"></div>
+          <div class="group"><label for="section">Section</label><input class="input" id="section" placeholder="A"></div>
+        </div>
+        <div class="group" id="deptField" hidden><label for="dept">Department</label><input class="input" id="dept" placeholder="e.g. IT Program"></div>
+
+        <div class="info"><i data-i="key"></i>A default password is created automatically. The person must change it the first time they sign in.</div>
+
+        <div class="form-actions">
+          <button type="button" class="btn lg" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn primary lg">Create account</button>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
