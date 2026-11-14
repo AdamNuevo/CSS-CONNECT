@@ -5,9 +5,42 @@ import Badge from "../components/Badge.jsx";
 import Avatar from "../components/Avatar.jsx";
 import RowMenu from "../components/RowMenu.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
+import EditPersonDialog from "../components/EditPersonDialog.jsx";
 import { useToast } from "../components/Toast.jsx";
 import { useStore } from "../store.jsx";
 import { PROGRAMS, ACAD_STATUSES, DEPARTMENTS, ACCOUNT_STATUSES } from "../data.js";
+import { toCsv, downloadCsv } from "../csv.js";
+
+// "BSIT 3-A" -> ["BSIT", "3", "A"]
+const splitSection = (s) => {
+  const [program, rest = ""] = s.split(" ");
+  const [year, ...section] = rest.split("-");
+  return [program, year, section.join("-")];
+};
+
+const EXPORT_COLUMNS = {
+  students: [
+    { header: "id_number", value: (r) => r.no },
+    { header: "full_name", value: (r) => r.name },
+    { header: "email", value: (r) => r.email },
+    { header: "program", value: (r) => splitSection(r.section)[0] },
+    { header: "year", value: (r) => splitSection(r.section)[1] },
+    { header: "section", value: (r) => splitSection(r.section)[2] },
+    { header: "academic_status", value: (r) => r.acad },
+    { header: "account_status", value: (r) => r.status },
+    { header: "date_added", value: (r) => r.created }
+  ],
+  faculty: [
+    { header: "id_number", value: (r) => r.no },
+    { header: "full_name", value: (r) => r.name },
+    { header: "email", value: (r) => r.email },
+    { header: "department", value: (r) => r.dept },
+    { header: "position", value: (r) => r.position },
+    { header: "specialization", value: (r) => r.spec },
+    { header: "account_status", value: (r) => r.status },
+    { header: "date_added", value: (r) => r.created }
+  ]
+};
 
 const PAGE_SIZE = 10;
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
@@ -43,6 +76,7 @@ export default function People({ kind }) {
   const [page, setPage] = useState(1);
   const [confirm, setConfirm] = useState(null); // { type, person }
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(null); // the person being edited
 
   // each tab starts with a clean slate; any change to what's shown goes back to page 1
   useEffect(() => { setF({ a: "", b: "", c: "", d: "" }); setSort({ key: "no", dir: "asc" }); }, [kind]);
@@ -92,7 +126,14 @@ export default function People({ kind }) {
     }
   }
 
+  // exports exactly what the table is showing: current search, filters and sort order
+  function exportCsv() {
+    downloadCsv(`${kind}-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(rows, EXPORT_COLUMNS[kind]));
+    toast(`Exported ${rows.length.toLocaleString()} ${isStudents ? "students" : "faculty"}`);
+  }
+
   const menuFor = (p) => [
+    { label: "Edit details", onSelect: () => setEditing(p) },
     { label: "Reset password", onSelect: () => setConfirm({ type: "reset", person: p }) },
     p.status === "Deactivated"
       ? { label: "Reactivate account", onSelect: () => setConfirm({ type: "reactivate", person: p }) }
@@ -106,7 +147,10 @@ export default function People({ kind }) {
     <>
       <div className="page-head">
         <p className="lead">Create, update and deactivate accounts</p>
-        <Link className="btn primary lg" to="/add"><Icon name="plus" />Add person</Link>
+        <div className="actions">
+          <button className="btn lg" onClick={exportCsv} disabled={rows.length === 0}><Icon name="download" />Export CSV</button>
+          <Link className="btn primary lg" to="/add"><Icon name="plus" />Add person</Link>
+        </div>
       </div>
 
       <div className="tabs" role="tablist" aria-label="Account type">
@@ -230,6 +274,8 @@ export default function People({ kind }) {
           </div>
         </div>
       </section>
+
+      <EditPersonDialog open={!!editing} kind={kind} person={editing} onClose={() => setEditing(null)} />
 
       <ConfirmDialog
         open={!!confirm}

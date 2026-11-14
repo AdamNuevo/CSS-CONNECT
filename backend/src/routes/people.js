@@ -62,6 +62,43 @@ router.post("/people", async (req, res) => {
   res.status(201).json(r.role === "Student" ? toStudent(r) : r.role === "Faculty" ? toFaculty(r) : toDean(r));
 });
 
+// Edit a person's details. The ID number and role can't change (the ID is the key and the default
+// password), so they always come from the stored account, never from the request.
+router.put("/people/:idNumber", async (req, res) => {
+  const { rows: found } = await query(
+    "select id, id_number, role from accounts where lower(id_number) = lower($1) and role in ('Student', 'Faculty', 'Dean')",
+    [req.params.idNumber]
+  );
+  const existing = found[0];
+  if (!existing) return res.status(404).json({ error: "Account not found." });
+
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const { value, errors } = validatePerson({ ...body, role: existing.role, id: existing.id_number });
+
+  // photo: leave alone if not sent, remove with "", otherwise it must be a valid image
+  const photoSent = Object.hasOwn(body, "photo");
+  if (photoSent && body.photo !== "" && !validPhoto(body.photo)) errors.photo = "Use a PNG, JPG, WebP or GIF image up to 2 MB.";
+  if (Object.keys(errors).length) return res.status(400).json({ error: "Please fix the highlighted fields.", fields: errors });
+
+  try {
+    await query(
+      `update accounts set full_name = $1, email = $2, program = $3, year_level = $4, section = $5, acad_status = $6,
+         department = $7, position = $8, specialization = $9,
+         photo = case when $10::boolean then $11 else photo end
+       where id = $12`,
+      [value.name, value.email, value.program ?? null, value.year ?? null, value.section ?? null, value.acad ?? null,
+        value.dept ?? null, value.position ?? null, value.spec || null, photoSent, body.photo || null, existing.id]
+    );
+  } catch (err) {
+    if (err.code === "23505") return res.status(409).json({ error: "This email already has an account.", fields: { email: "This email already has an account." } });
+    throw err;
+  }
+
+  const { rows } = await query(`select ${COLUMNS}, role from accounts where id = $1`, [existing.id]);
+  const r = rows[0];
+  res.json(r.role === "Student" ? toStudent(r) : r.role === "Faculty" ? toFaculty(r) : toDean(r));
+});
+
 const ACTIONS = {
   reset: { status: "Reset requested", clearPassword: true },
   deactivate: { status: "Deactivated" },
