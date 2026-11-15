@@ -53,7 +53,7 @@ export default function Dashboard() {
     <>
       <div className="page-head">
         <div>
-          <h2 className="page-title">Welcome back</h2>
+          <h1 className="page-title">Welcome back</h1>
           <p className="lead">Account management for the College of Computer Studies</p>
         </div>
         <div className="actions">

@@ -6,6 +6,7 @@ import { requireRegistrar } from "./auth.js";
 import authRoutes from "./routes/auth.js";
 import peopleRoutes from "./routes/people.js";
 import importRoutes from "./routes/import.js";
+import activityRoutes from "./routes/activity.js";
 
 const required = ["DATABASE_URL", "JWT_SECRET"];
 for (const key of required) {
@@ -28,7 +29,7 @@ app.use(cookieParser());
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 app.use("/api/auth", authRoutes);
-app.use("/api", requireRegistrar, peopleRoutes, importRoutes);
+app.use("/api", requireRegistrar, peopleRoutes, importRoutes, activityRoutes);
 
 app.use("/api", (req, res) => res.status(404).json({ error: "Not found." }));
 

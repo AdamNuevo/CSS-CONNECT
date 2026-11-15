@@ -4,7 +4,8 @@ A Centralized Data Governance and Academic Information Management System for the
 Computer Studies, Quezon City University.
 
 This repository currently contains the **registrar portal**: staff sign in, import or add student and
-faculty accounts, reset passwords, and activate or deactivate accounts. The other modules from the
+faculty accounts, edit details, export lists to CSV, reset passwords, and activate or deactivate
+accounts. Every change is recorded in an append-only **Activity log** (who, what, when). The other modules from the
 "Modules and Features" document are not built yet.
 
 ## Tech stack

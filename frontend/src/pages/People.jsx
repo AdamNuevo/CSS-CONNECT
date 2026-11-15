@@ -42,6 +42,11 @@ const EXPORT_COLUMNS = {
   ]
 };
 
+const SORT_OPTIONS = {
+  students: [["no", "Student no."], ["name", "Name"], ["section", "Section"], ["acad", "Academic status"], ["status", "Account"]],
+  faculty: [["no", "Faculty ID"], ["name", "Name"], ["dept", "Department"], ["position", "Position"], ["status", "Account"]]
+};
+
 const PAGE_SIZE = 10;
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 
@@ -146,7 +151,10 @@ export default function People({ kind }) {
   return (
     <>
       <div className="page-head">
-        <p className="lead">Create, update and deactivate accounts</p>
+        <div>
+          <h1 className="page-title">{isStudents ? "Students" : "Faculty"}</h1>
+          <p className="lead">Create, update and deactivate accounts</p>
+        </div>
         <div className="actions">
           <button className="btn lg" onClick={exportCsv} disabled={rows.length === 0}><Icon name="download" />Export CSV</button>
           <Link className="btn primary lg" to="/add"><Icon name="plus" />Add person</Link>
@@ -203,11 +211,22 @@ export default function People({ kind }) {
               </label>
             </>
           )}
+          {/* on phones the table headers are hidden, so sorting moves here */}
+          <label className="field-sm phone-only">Sort by
+            <select className="select" value={`${sort.key}:${sort.dir}`} onChange={(e) => { const [key, dir] = e.target.value.split(":"); setSort({ key, dir }); }}>
+              {SORT_OPTIONS[kind].map(([key, label]) => (
+                <optgroup key={key} label={label}>
+                  <option value={`${key}:asc`}>{label} (A to Z)</option>
+                  <option value={`${key}:desc`}>{label} (Z to A)</option>
+                </optgroup>
+              ))}
+            </select>
+          </label>
           {anyFilter && <button className="link clear" onClick={() => setF({ a: "", b: "", c: "", d: "" })}>Clear filters</button>}
         </div>
 
         <div className="table-scroll">
-          <table className="table">
+          <table className="table cards people">
             <caption className="sr-only">{isStudents ? "Student accounts" : "Faculty accounts"}</caption>
             <thead>
               {isStudents ? (
@@ -233,13 +252,13 @@ export default function People({ kind }) {
             <tbody>
               {visible.map((d) => (
                 <tr key={d.no} className={d.status === "Deactivated" ? "muted-row" : ""}>
-                  <td className="mono">{d.no}</td>
-                  <td><span className="person"><Avatar name={d.name} photo={d.photo} /><span>{d.name}<small>{d.email}</small></span></span></td>
-                  <td>{isStudents ? d.section : d.dept}</td>
+                  <td className="mono c-id">{d.no}</td>
+                  <td className="c-main"><span className="person"><Avatar name={d.name} photo={d.photo} /><span>{d.name}<small>{d.email}</small></span></span></td>
+                  <td className="c-meta">{isStudents ? d.section : d.dept}</td>
                   {isStudents
-                    ? <td><Badge status={d.acad} /></td>
-                    : <td>{d.position}<small className="sub">{d.spec}</small></td>}
-                  <td><Badge status={d.status} /></td>
+                    ? <td className="c-badge"><Badge status={d.acad} /></td>
+                    : <td className="c-meta">{d.position}<small className="sub">{d.spec}</small></td>}
+                  <td className="c-badge"><Badge status={d.status} /></td>
                   <td className="actions-cell"><RowMenu label={`Actions for ${d.name}`} items={menuFor(d)} /></td>
                 </tr>
               ))}
@@ -288,7 +307,7 @@ export default function People({ kind }) {
       >
         {confirm && (
           confirm.type === "reset"
-            ? <p><strong>{confirm.person.name}</strong> will get a new default password and must change it the next time they sign in.</p>
+            ? <p><strong>{confirm.person.name}</strong> will get a new default password. Ask them to change it after they sign in.</p>
             : confirm.type === "deactivate"
               ? <p><strong>{confirm.person.name}</strong> will no longer be able to sign in. You can reactivate the account later.</p>
               : <p><strong>{confirm.person.name}</strong> will be able to sign in again.</p>

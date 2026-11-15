@@ -2,6 +2,7 @@ import { Router } from "express";
 import { query } from "../db.js";
 import { INSERT_ACCOUNT, accountParams } from "../migrate.js";
 import { validatePerson, validPhoto } from "../validate.js";
+import { logActivity } from "../activity.js";
 
 const router = Router();
 
@@ -59,6 +60,7 @@ router.post("/people", async (req, res) => {
 
   const { rows: created } = await query(`select ${COLUMNS}, role from accounts where id = $1`, [rows[0].id]);
   const r = created[0];
+  await logActivity(req.account, "person_added", { targetId: r.id_number, targetName: r.full_name, detail: r.role });
   res.status(201).json(r.role === "Student" ? toStudent(r) : r.role === "Faculty" ? toFaculty(r) : toDean(r));
 });
 
@@ -66,7 +68,9 @@ router.post("/people", async (req, res) => {
 // password), so they always come from the stored account, never from the request.
 router.put("/people/:idNumber", async (req, res) => {
   const { rows: found } = await query(
-    "select id, id_number, role from accounts where lower(id_number) = lower($1) and role in ('Student', 'Faculty', 'Dean')",
+    `select id, id_number, role, full_name, email, program, year_level, section, acad_status, department, position,
+            specialization, (photo is not null) as has_photo
+     from accounts where lower(id_number) = lower($1) and role in ('Student', 'Faculty', 'Dean')`,
     [req.params.idNumber]
   );
   const existing = found[0];
@@ -96,13 +100,24 @@ router.put("/people/:idNumber", async (req, res) => {
 
   const { rows } = await query(`select ${COLUMNS}, role from accounts where id = $1`, [existing.id]);
   const r = rows[0];
+
+  // record only the names of the fields that really changed (never the values or the photo itself)
+  const changed = [
+    ["Name", existing.full_name, value.name], ["Email", existing.email, value.email],
+    ["Program", existing.program, value.program ?? null], ["Year", existing.year_level, value.year ?? null],
+    ["Section", existing.section, value.section ?? null], ["Academic status", existing.acad_status, value.acad ?? null],
+    ["Department", existing.department, value.dept ?? null], ["Position", existing.position, value.position ?? null],
+    ["Specialization", existing.specialization, value.spec || null]
+  ].filter(([, before, after]) => before !== after).map(([label]) => label);
+  if (photoSent && (body.photo ? true : existing.has_photo)) changed.push(body.photo ? "Photo" : "Photo removed");
+  if (changed.length) await logActivity(req.account, "person_edited", { targetId: existing.id_number, targetName: value.name, detail: `Changed: ${changed.join(", ")}` });
   res.json(r.role === "Student" ? toStudent(r) : r.role === "Faculty" ? toFaculty(r) : toDean(r));
 });
 
 const ACTIONS = {
-  reset: { status: "Reset requested", clearPassword: true },
-  deactivate: { status: "Deactivated" },
-  reactivate: { status: "Activated" }
+  reset: { status: "Reset requested", clearPassword: true, log: "password_reset" },
+  deactivate: { status: "Deactivated", log: "deactivated" },
+  reactivate: { status: "Activated", log: "reactivated" }
 };
 
 router.patch("/people/:idNumber/status", async (req, res) => {
@@ -111,12 +126,14 @@ router.patch("/people/:idNumber/status", async (req, res) => {
   if (!action) return res.status(400).json({ error: "Unknown action." });
 
   // the registrar's own account can't be changed from the people lists
-  const { rowCount } = await query(
+  const { rows } = await query(
     `update accounts set status = $1${action.clearPassword ? ", password_hash = null" : ""}
-     where lower(id_number) = lower($2) and role in ('Student', 'Faculty', 'Dean')`,
+     where lower(id_number) = lower($2) and role in ('Student', 'Faculty', 'Dean')
+     returning id_number, full_name, role`,
     [action.status, req.params.idNumber]
   );
-  if (!rowCount) return res.status(404).json({ error: "Account not found." });
+  if (!rows.length) return res.status(404).json({ error: "Account not found." });
+  await logActivity(req.account, action.log, { targetId: rows[0].id_number, targetName: rows[0].full_name, detail: rows[0].role });
   res.json({ status: action.status });
 });
 

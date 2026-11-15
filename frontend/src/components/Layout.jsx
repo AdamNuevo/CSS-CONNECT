@@ -14,7 +14,8 @@ const NAV = [
       { label: "Faculty", to: "/faculty", icon: "users" },
       { label: "Add person", to: "/add", icon: "plus" }
     ]
-  }
+  },
+  { group: "Records", items: [{ label: "Activity log", to: "/activity", icon: "clock" }] }
 ];
 
 const TITLES = {
@@ -24,12 +25,15 @@ const TITLES = {
   "/students": "Students",
   "/faculty": "Faculty",
   "/add": "Add person",
+  "/activity": "Activity log",
   "/profile": "Profile"
 };
 
 function Sidebar({ open, onClose }) {
   const { pathname } = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const signOut = async () => { await logout(); navigate("/login"); };
   return (
     <aside className={"sidebar" + (open ? " open" : "")} aria-label="Sidebar">
       <Link className="brand" to="/" aria-label="CCS Connect home">
@@ -64,10 +68,13 @@ function Sidebar({ open, onClose }) {
         ))}
       </nav>
 
-      <Link className="sidebar-user" to="/profile" onClick={onClose} aria-label="Your profile">
-        <Avatar name={user.name} photo={user.photo} />
-        <span className="sidebar-user-text"><strong>{user.name}</strong><small>{user.role}</small></span>
-      </Link>
+      <div className="sidebar-foot">
+        <Link className="sidebar-user" to="/profile" onClick={onClose} aria-label="Your profile">
+          <Avatar name={user.name} photo={user.photo} />
+          <span className="sidebar-user-text"><strong>{user.name}</strong><small>{user.role}</small></span>
+        </Link>
+        <button className="sidebar-logout" onClick={signOut} aria-label="Log out" title="Log out"><Icon name="logout" /></button>
+      </div>
     </aside>
   );
 }
@@ -110,7 +117,7 @@ function Topbar({ onMenu }) {
   return (
     <header className="topbar">
       <button className="icon-btn menu-btn" onClick={onMenu} aria-label="Open menu"><Icon name="menu" /></button>
-      <h1>{TITLES[pathname] || ""}</h1>
+      <Link className="topbar-brand" to="/" aria-label="CCS Connect home"><img src="/qcu-logo.png" alt="" width="28" height="28" />CCS Connect</Link>
       <div className="topbar-right">
         <label className="search">
           <Icon name="search" />
@@ -135,8 +142,12 @@ export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
 
-  // close the mobile menu after navigating, and return to the top of the new page
-  useEffect(() => { setMenuOpen(false); window.scrollTo(0, 0); }, [pathname]);
+  // close the mobile menu after navigating, return to the top, and name the browser tab after the page
+  useEffect(() => {
+    setMenuOpen(false);
+    window.scrollTo(0, 0);
+    document.title = TITLES[pathname] ? `${TITLES[pathname]} · CCS Connect` : "CCS Connect";
+  }, [pathname]);
 
   return (
     <div className="app">

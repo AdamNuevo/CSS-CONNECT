@@ -4,6 +4,7 @@ import { parse } from "csv-parse/sync";
 import { pool, query } from "../db.js";
 import { INSERT_ACCOUNT, accountParams } from "../migrate.js";
 import { validatePerson } from "../validate.js";
+import { logActivity } from "../activity.js";
 
 const router = Router();
 const MAX_ROWS = 2000;
@@ -123,6 +124,7 @@ router.post("/import/commit", async (req, res) => {
     const fileName = typeof req.body.fileName === "string" ? req.body.fileName.replace(/[\u0000-\u001f]/g, "").slice(0, 100) : "import.csv";
     const skipped = Number.isInteger(req.body.skipped) && req.body.skipped >= 0 ? req.body.skipped : rows.length - created;
     await client.query("insert into imports (filename, imported, skipped) values ($1, $2, $3)", [fileName || "import.csv", created, skipped]);
+    await logActivity(req.account, "import", { detail: `${fileName || "import.csv"}: ${created} created, ${skipped} skipped` }, client);
     await client.query("commit");
   } catch (err) {
     await client.query("rollback");

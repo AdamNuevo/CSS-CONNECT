@@ -7,6 +7,7 @@ import Review from "./pages/Review.jsx";
 import People from "./pages/People.jsx";
 import AddPerson from "./pages/AddPerson.jsx";
 import Profile from "./pages/Profile.jsx";
+import Activity from "./pages/Activity.jsx";
 import { useAuth } from "./auth.jsx";
 
 // Everything except /login needs a signed-in user.
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/students" element={<People kind="students" />} />
         <Route path="/faculty" element={<People kind="faculty" />} />
         <Route path="/add" element={<AddPerson />} />
+        <Route path="/activity" element={<Activity />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

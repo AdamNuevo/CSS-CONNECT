@@ -5,6 +5,7 @@ import {
   checkPassword, hashPassword, setSessionCookie, clearSessionCookie, requireRegistrar, publicUser
 } from "../auth.js";
 import { validPhoto } from "../validate.js";
+import { logActivity } from "../activity.js";
 
 const router = Router();
 
@@ -32,6 +33,7 @@ router.post("/login", loginLimiter, async (req, res) => {
   if (account.role !== "Registrar") return res.status(403).json({ error: "This portal is for registrar staff." });
 
   setSessionCookie(res, account);
+  await logActivity({ id: account.id, full_name: account.full_name }, "sign_in");
   res.json({ user: publicUser(account) });
 });
 
@@ -46,6 +48,7 @@ router.patch("/me", requireRegistrar, async (req, res) => {
   const { photo } = req.body ?? {};
   if (photo !== "" && !validPhoto(photo)) return res.status(400).json({ error: "Use a PNG, JPG, WebP or GIF image up to 2 MB." });
   await query("update accounts set photo = $1 where id = $2", [photo || null, req.account.id]);
+  await logActivity(req.account, "profile_photo", { detail: photo ? "Updated" : "Removed" });
   const { rows } = await query(`select ${ACCOUNT_COLUMNS} from accounts where id = $1`, [req.account.id]);
   res.json({ user: publicUser(rows[0]) });
 });
@@ -61,6 +64,7 @@ router.post("/change-password", requireRegistrar, async (req, res) => {
   if (!(await checkPassword(rows[0], current))) return reject("currentPassword", "Current password is wrong.");
 
   await query("update accounts set password_hash = $1, status = 'Activated' where id = $2", [await hashPassword(next), req.account.id]);
+  await logActivity(req.account, "password_changed");
   res.json({ ok: true });
 });
 
