@@ -28,7 +28,16 @@ const SHAPES = {
   "eye-off": (<><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z" /><circle cx="8" cy="8" r="2" /><path d="m3 13 10-10" /></>),
   alert: (<><circle cx="8" cy="8" r="5.5" /><path d="M8 5v3.5M8 10.8v.01" /></>),
   table: (<><rect x="2.5" y="3" width="11" height="10" rx="1.5" /><path d="M2.5 6.5h11M2.5 10h11M6.5 6.5V13" /></>),
-  chart: (<><path d="M3 13V3M3 13h10" /><path d="M6 10V8M9 10V5M12 10V7" /></>)
+  chart: (<><path d="M3 13V3M3 13h10" /><path d="M6 10V8M9 10V5M12 10V7" /></>),
+  calendar: (<><rect x="2.5" y="3.5" width="11" height="10" rx="1.5" /><path d="M2.5 7h11M5.5 3.5V5M10.5 3.5V5" /></>),
+  "message-square": (<><rect x="2" y="2.5" width="12" height="9" rx="1.5" /><path d="M4.5 11.5 3 13.5l3-2h6.5" /></>),
+  star: (<><path d="M8 2.5l1.5 3.2 3.5.5-2.5 2.4.6 3.4L8 10.5 4.9 12l.6-3.4L3 6.2l3.5-.5z" /></>),
+  bell: (<><path d="M8 2.5a4 4 0 0 1 4 4V10H4V6.5a4 4 0 0 1 4-4z" /><path d="M6.5 10v.5a1.5 1.5 0 0 0 3 0V10" /></>),
+  "check-square": (<><rect x="3" y="3" width="10" height="10" rx="1.5" /><path d="m5.5 8 2 2 3-3" /></>),
+  briefcase: (<><rect x="2.5" y="5.5" width="11" height="8" rx="1.5" /><path d="M5.5 5.5V4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M2.5 9.5h11" /></>),
+  "book-open": (<><path d="M8 4.5C6.5 3.5 4 3.5 2.5 4.5V13c1.5-1 4-1 5.5 0 1.5-1 4-1 5.5 0V4.5C12 3.5 9.5 3.5 8 4.5z" /><path d="M8 4.5V13" /></>),
+  "bar-chart": (<><path d="M3 13V3M3 13h10" /><rect x="5" y="8" width="2" height="5" /><rect x="9" y="5" width="2" height="8" /></>),
+  shield: (<><path d="M8 2 3 4v4c0 3 2.5 5.5 5 6 2.5-.5 5-3 5-6V4z" /></>)
 };
 
 export default function Icon({ name, className }) {

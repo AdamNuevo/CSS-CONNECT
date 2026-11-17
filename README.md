@@ -1,6 +1,6 @@
-<<<<<<< HEAD
+
 # CSS-CONNECT
-=======
+======= 
 # CCS Connect
 
 A Centralized Data Governance and Academic Information Management System for the College of
