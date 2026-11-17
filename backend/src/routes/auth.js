@@ -2,7 +2,7 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { query } from "../db.js";
 import {
-  checkPassword, hashPassword, setSessionCookie, clearSessionCookie, requireRegistrar, publicUser
+  checkPassword, hashPassword, setSessionCookie, clearSessionCookie, requireRegistrar, requireAuth, publicUser
 } from "../auth.js";
 import { validPhoto } from "../validate.js";
 import { logActivity } from "../activity.js";
@@ -30,7 +30,8 @@ router.post("/login", loginLimiter, async (req, res) => {
   const bad = () => res.status(401).json({ error: "Wrong email or password." });
   if (!account || !password || !(await checkPassword(account, password))) return bad();
   if (account.status === "Deactivated") return res.status(403).json({ error: "This account is deactivated." });
-  if (account.role !== "Registrar") return res.status(403).json({ error: "This portal is for registrar staff." });
+  if (account.role !== "Registrar" && account.role !== "Dean") 
+    return res.status(403).json({ error: "This portal is for registrar staff and the dean." });
 
   setSessionCookie(res, account);
   await logActivity({ id: account.id, full_name: account.full_name }, "sign_in");
@@ -42,9 +43,9 @@ router.post("/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-router.get("/me", requireRegistrar, (req, res) => res.json({ user: publicUser(req.account) }));
+router.get("/me", requireAuth, (req, res) => res.json({ user: publicUser(req.account) }));
 
-router.patch("/me", requireRegistrar, async (req, res) => {
+router.patch("/me", requireAuth, async (req, res) => {
   const { photo } = req.body ?? {};
   if (photo !== "" && !validPhoto(photo)) return res.status(400).json({ error: "Use a PNG, JPG, WebP or GIF image up to 2 MB." });
   await query("update accounts set photo = $1 where id = $2", [photo || null, req.account.id]);
@@ -53,7 +54,7 @@ router.patch("/me", requireRegistrar, async (req, res) => {
   res.json({ user: publicUser(rows[0]) });
 });
 
-router.post("/change-password", requireRegistrar, async (req, res) => {
+router.post("/change-password", requireAuth, async (req, res) => {
   const current = typeof req.body?.currentPassword === "string" ? req.body.currentPassword : "";
   const next = typeof req.body?.newPassword === "string" ? req.body.newPassword : "";
   const reject = (field, message) => res.status(400).json({ error: message, fields: { [field]: message } });

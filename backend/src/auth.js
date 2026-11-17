@@ -53,3 +53,30 @@ export const publicUser = (a) => ({
   role: a.role,
   photo: a.has_photo ? `/api/photos/${encodeURIComponent(a.id_number)}?v=${a.photo_len}` : ""
 });
+
+// Generic: any authenticated, active, non-student account
+export async function requireAuth(req, res, next) {
+  const token = req.cookies?.[COOKIE];
+  if (!token) return res.status(401).json({ error: "Please sign in." });
+  let payload;
+  try { payload = jwt.verify(token, SECRET); } catch { return res.status(401).json({ error: "Your session has expired. Please sign in again." }); }
+  const { rows } = await query("select id, id_number, full_name, email, role, status, (photo is not null) as has_photo, length(photo) as photo_len from accounts where id = $1", [payload.sub]);
+  const account = rows[0];
+  if (!account || account.status === "Deactivated") return res.status(401).json({ error: "Please sign in." });
+  if (account.role === "Student") return res.status(403).json({ error: "Access denied." });
+  req.account = account;
+  next();
+}
+
+export async function requireDean(req, res, next) {
+  const token = req.cookies?.[COOKIE];
+  if (!token) return res.status(401).json({ error: "Please sign in." });
+  let payload;
+  try { payload = jwt.verify(token, SECRET); } catch { return res.status(401).json({ error: "Your session has expired. Please sign in again." }); }
+  const { rows } = await query("select id, id_number, full_name, email, role, status, (photo is not null) as has_photo, length(photo) as photo_len from accounts where id = $1", [payload.sub]);
+  const account = rows[0];
+  if (!account || account.status === "Deactivated") return res.status(401).json({ error: "Please sign in." });
+  if (account.role !== "Dean") return res.status(403).json({ error: "This portal is for the dean." });
+  req.account = account;
+  next();
+}

@@ -33,7 +33,7 @@ export default function Login() {
           <h2>One place for the College of Computer Studies.</h2>
           <p>Create and manage student, faculty and dean accounts for BSIT, BSIS and BSCS.</p>
         </div>
-        <small className="login-foot">College of Computer Studies · Registrar portal</small>
+        <small className="login-foot">College of Computer Studies · Staff portal</small>
       </aside>
 
       <main className="login-main">
@@ -75,7 +75,7 @@ export default function Login() {
 
           <button type="submit" className="btn primary lg login-btn" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
 
-          <div className="info"><Icon name="lock" />For registrar staff only. Students and faculty sign in through their own apps.</div>
+          <div className="info"><Icon name="lock" />For registrar staff and the dean. Students and faculty sign in through their own apps.</div>
         </form>
       </main>
     </div>

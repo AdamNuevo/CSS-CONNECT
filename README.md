@@ -1,3 +1,6 @@
+
+# CSS-CONNECT
+======= 
 # CCS Connect
 
 A Centralized Data Governance and Academic Information Management System for the College of
@@ -90,3 +93,4 @@ docker-compose.yml, .env.example
 - Serve the site over **HTTPS** in production and set `COOKIE_SECURE=true`.
 - The database and API are not published to the network; only the web container is (port 8080).
 - Back up the `db-data` Docker volume if the data matters.
+>>>>>>> origin/registrar-portal

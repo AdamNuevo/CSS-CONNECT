@@ -29,7 +29,7 @@ export function StoreProvider({ children }) {
     }
   }, []);
 
-  const signedIn = Boolean(user);
+  const signedIn = Boolean(user) && user?.role === "Registrar";
   useEffect(() => {
     if (signedIn) reload();
     else { setStudents([]); setFaculty([]); setLatestImport(null); setError(""); }

@@ -1,12 +1,14 @@
 import express from "express";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import { query } from "./db.js";
 import { migrate } from "./migrate.js";
 import { requireRegistrar } from "./auth.js";
 import authRoutes from "./routes/auth.js";
 import peopleRoutes from "./routes/people.js";
 import importRoutes from "./routes/import.js";
 import activityRoutes from "./routes/activity.js";
+import deanRoutes from "./routes/dean.js";
 
 const required = ["DATABASE_URL", "JWT_SECRET"];
 for (const key of required) {
@@ -28,7 +30,15 @@ app.use(express.json({ limit: "4mb" })); // room for a 2 MB profile picture as b
 app.use(cookieParser());
 
 app.get("/api/health", (req, res) => res.json({ ok: true }));
+app.get("/api/photos/:idNumber", async (req, res) => {
+  const { rows } = await query("select photo from accounts where lower(id_number) = lower($1) and photo is not null", [req.params.idNumber]);
+  const match = /^data:(image\/(?:png|jpeg|webp|gif));base64,(.+)$/.exec(rows[0]?.photo ?? "");
+  if (!match) return res.status(404).end();
+  res.set({ "Content-Type": match[1], "Cache-Control": "private, max-age=300" });
+  res.send(Buffer.from(match[2], "base64"));
+});
 app.use("/api/auth", authRoutes);
+app.use("/api/dean", deanRoutes);
 app.use("/api", requireRegistrar, peopleRoutes, importRoutes, activityRoutes);
 
 app.use("/api", (req, res) => res.status(404).json({ error: "Not found." }));
