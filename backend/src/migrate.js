@@ -33,6 +33,18 @@ create table if not exists imports (
   skipped int not null,
   created_at timestamptz not null default now()
 );
+
+create table if not exists activity (
+  id bigserial primary key,
+  at timestamptz not null default now(),
+  actor_id int references accounts(id) on delete set null,
+  actor_name text not null,
+  action text not null,
+  target_id text,
+  target_name text,
+  detail text
+);
+create index if not exists activity_at_idx on activity (at desc, id desc);
 create table if not exists announcements (
   id serial primary key,
   title text not null,

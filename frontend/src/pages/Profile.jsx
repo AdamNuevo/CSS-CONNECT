@@ -44,7 +44,7 @@ export default function Profile() {
     <>
       <div className="page-head">
         <div>
-          <h2 className="page-title">Your profile</h2>
+          <h1 className="page-title">Your profile</h1>
           <p className="lead">Your account information</p>
         </div>
       </div>
@@ -65,10 +65,7 @@ export default function Profile() {
           <div><dt>Full name</dt><dd>{user.name}</dd></div>
           <div><dt>University email</dt><dd>{user.email}</dd></div>
           <div><dt>Position</dt><dd>{user.role}</dd></div>
-          <div><dt>Department</dt><dd>Registrar's Office</dd></div>
-          <div><dt>Contact number</dt><dd className="placeholder">Not added yet</dd></div>
-          <div><dt>Profile photo</dt><dd>{user.photo ? "Uploaded" : "Not set"}</dd></div>
-        </dl>
+          <div><dt>Department</dt><dd>Registrar's Office</dd></div>        </dl>
       </section>
 
       <section className="card">

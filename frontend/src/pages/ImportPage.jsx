@@ -56,7 +56,7 @@ export default function ImportPage() {
     <>
       <div className="page-head">
         <div>
-          <h2 className="page-title">Import accounts</h2>
+          <h1 className="page-title">Import accounts</h1>
           <p className="lead">Create student, faculty and dean accounts in bulk</p>
         </div>
         <Stepper steps={IMPORT_STEPS} current={1} />
@@ -97,7 +97,7 @@ export default function ImportPage() {
             <li><span className="step-n">1</span><div><strong>Download the template</strong><small>Students need program (BSIT, BSIS, BSCS), year and section. Faculty and dean rows need a department.</small></div></li>
             <li><span className="step-n">2</span><div><strong>Fill in the list</strong><small>Use the official list from the registrar. One row per person, all emails ending in @qcu.edu.ph.</small></div></li>
             <li><span className="step-n">3</span><div><strong>Upload and review</strong><small>We check every row before anything is created.</small></div></li>
-            <li><span className="step-n">4</span><div><strong>Confirm</strong><small>Accounts are created with a default password. Users must change it on first sign-in.</small></div></li>
+            <li><span className="step-n">4</span><div><strong>Confirm</strong><small>Accounts are created with a default password. Ask users to change it after they first sign in.</small></div></li>
           </ol>
         </aside>
       </div>
