@@ -6,7 +6,8 @@ export const ACAD_STATUSES = ["Regular", "Irregular", "INC", "UD", "OD", "OW"];
 export const DEPARTMENTS = ["IT Program", "IS Program", "CS Program"];
 export const ROLES = ["Student", "Faculty", "Dean"];
 
-const EMAIL_RE = /^[^\s@]+@qcu\.edu\.ph$/i;
+// any normal email address: university (@qcu.edu.ph) or personal (e.g. @gmail.com)
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 const ID_RE = /^[A-Za-z0-9-]{3,32}$/;
 
 // Accepts strings and plain numbers (JSON clients send year as 1 or "1"); anything else counts as empty.
@@ -37,8 +38,8 @@ export function validatePerson(input) {
   else if (name.length > 120) fail("name", "Name is too long.", "Invalid name");
 
   const email = str(input.email).toLowerCase();
-  if (!email) fail("email", "Enter a university email.", "Invalid email");
-  else if (!EMAIL_RE.test(email)) fail("email", "Use a university email ending in @qcu.edu.ph.", "Invalid email");
+  if (!email) fail("email", "Enter an email address.", "Invalid email");
+  else if (email.length > 254 || !EMAIL_RE.test(email)) fail("email", "Enter a valid email, e.g. name@qcu.edu.ph or name@gmail.com.", "Invalid email");
 
   const value = { role, id, name, email, photo: str(input.photo) };
 

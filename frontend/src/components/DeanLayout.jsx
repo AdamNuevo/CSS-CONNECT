@@ -40,10 +40,10 @@ function DeanSidebar({ open, onClose }) {
   const { user } = useAuth();
   return (
     <aside className={"sidebar" + (open ? " open" : "")} aria-label="Sidebar">
-      <Link className="brand" to="/dean/dashboard" aria-label="CCS Connect home">
+      <Link className="brand" to="/dean/dashboard" aria-label="CCS Hub home">
         <img className="brand-logo" src="/qcu-logo.png" alt="" width="40" height="40" />
         <span>
-          <span className="brand-name">CCS Connect</span>
+          <span className="brand-name">CCS Hub</span>
           <span className="brand-sub">Quezon City University</span>
         </span>
       </Link>

@@ -37,23 +37,33 @@ export function StoreProvider({ children }) {
 
   // Creates one account. Throws ApiError (with .fields) when the server rejects it.
   const addPerson = useCallback(async (person) => {
-    const created = await api("/people", { method: "POST", body: person });
+    const { emailed, ...created } = await api("/people", { method: "POST", body: person });
     if (person.role === "Student") setStudents((l) => [created, ...l]);
     if (person.role === "Faculty") setFaculty((l) => [created, ...l]);
-    return created;
+    return { ...created, emailed };
+  }, []);
+
+  // Saves edited details. Throws ApiError (with .fields) when the server rejects them.
+  const updatePerson = useCallback(async (kind, no, details) => {
+    const updated = await api(`/people/${encodeURIComponent(no)}`, { method: "PUT", body: details });
+    const replace = (list) => list.map((p) => (p.no === no ? updated : p));
+    if (kind === "students") setStudents(replace);
+    else setFaculty(replace);
+    return updated;
   }, []);
 
   // action: "reset" | "deactivate" | "reactivate"
   const applyAction = useCallback(async (kind, no, action) => {
-    const { status } = await api(`/people/${encodeURIComponent(no)}/status`, { method: "PATCH", body: { action } });
+    const { status, emailed } = await api(`/people/${encodeURIComponent(no)}/status`, { method: "PATCH", body: { action } });
     const update = (list) => list.map((p) => (p.no === no ? { ...p, status } : p));
     if (kind === "students") setStudents(update);
     else setFaculty(update);
+    return { status, emailed };
   }, []);
 
   const value = useMemo(
-    () => ({ students, faculty, latestImport, loading, error, reload, addPerson, applyAction }),
-    [students, faculty, latestImport, loading, error, reload, addPerson, applyAction]
+    () => ({ students, faculty, latestImport, loading, error, reload, addPerson, updatePerson, applyAction }),
+    [students, faculty, latestImport, loading, error, reload, addPerson, updatePerson, applyAction]
   );
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

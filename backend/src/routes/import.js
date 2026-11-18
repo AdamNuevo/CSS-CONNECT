@@ -4,6 +4,8 @@ import { parse } from "csv-parse/sync";
 import { pool, query } from "../db.js";
 import { INSERT_ACCOUNT, accountParams } from "../migrate.js";
 import { validatePerson } from "../validate.js";
+import { logActivity } from "../activity.js";
+import { mailEnabled, sendLoginDetailsInBackground } from "../mail.js";
 
 const router = Router();
 const MAX_ROWS = 2000;
@@ -114,15 +116,18 @@ router.post("/import/commit", async (req, res) => {
 
   const client = await pool.connect();
   let created = 0;
+  const createdPeople = [];
   try {
     await client.query("begin");
     for (const r of ready) {
       const { rowCount } = await client.query(INSERT_ACCOUNT, accountParams(r.value));
       created += rowCount;
+      if (rowCount) createdPeople.push({ name: r.value.name, email: r.value.email, idNumber: r.value.id });
     }
     const fileName = typeof req.body.fileName === "string" ? req.body.fileName.replace(/[\u0000-\u001f]/g, "").slice(0, 100) : "import.csv";
     const skipped = Number.isInteger(req.body.skipped) && req.body.skipped >= 0 ? req.body.skipped : rows.length - created;
     await client.query("insert into imports (filename, imported, skipped) values ($1, $2, $3)", [fileName || "import.csv", created, skipped]);
+    await logActivity(req.account, "import", { detail: `${fileName || "import.csv"}: ${created} created, ${skipped} skipped` }, client);
     await client.query("commit");
   } catch (err) {
     await client.query("rollback");
@@ -130,7 +135,9 @@ router.post("/import/commit", async (req, res) => {
   } finally {
     client.release();
   }
-  res.status(201).json({ created, skipped: rows.length - created });
+  // email everyone their login details only after the import is safely saved
+  sendLoginDetailsInBackground(createdPeople);
+  res.status(201).json({ created, skipped: rows.length - created, emailing: mailEnabled ? createdPeople.length : 0 });
 });
 
 export default router;

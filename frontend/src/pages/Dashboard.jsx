@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Icon from "../components/Icon.jsx";
 import Badge from "../components/Badge.jsx";
@@ -6,12 +7,31 @@ import BarChart from "../components/BarChart.jsx";
 import { useStore } from "../store.jsx";
 import { PROGRAMS, formatDate } from "../data.js";
 
+// counts up from 0 to the value when the dashboard opens
+function useCountUp(value, ms = 700) {
+  const [shown, setShown] = useState(value);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return setShown(value);
+    let frame;
+    const start = performance.now();
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / ms);
+      setShown(Math.round(value * (1 - Math.pow(1 - t, 3))));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, ms]);
+  return shown;
+}
+
 function Stat({ label, icon, value, note, tone }) {
+  const shown = useCountUp(value);
   return (
     <div className="card stat-card">
       <span className={"stat-icon" + (tone ? " " + tone : "")}><Icon name={icon} /></span>
       <span className="stat-label">{label}</span>
-      <span className="stat-value">{value.toLocaleString()}</span>
+      <span className="stat-value" aria-label={value.toLocaleString()}>{shown.toLocaleString()}</span>
       <span className="stat-note">{note}</span>
     </div>
   );
@@ -53,7 +73,7 @@ export default function Dashboard() {
     <>
       <div className="page-head">
         <div>
-          <h2 className="page-title">Welcome back</h2>
+          <h1 className="page-title">Welcome back</h1>
           <p className="lead">Account management for the College of Computer Studies</p>
         </div>
         <div className="actions">

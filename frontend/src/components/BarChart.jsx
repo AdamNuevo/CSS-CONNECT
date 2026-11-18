@@ -69,14 +69,14 @@ export default function BarChart({ title, subtitle, data, orientation = "horizon
           </tbody>
         </table>
       ) : (
-        <div className="chart-wrap" ref={wrap}>
+        <div className={"chart-wrap" + (tip ? " has-active" : "")} ref={wrap}>
           {orientation === "horizontal" ? (
             <div className="hbars">
-              {data.map((d) => (
+              {data.map((d, i) => (
                 <div className="hbar-row" key={d.label}>
                   <span className="hbar-label">{d.label}</span>
                   <div className="hbar-plot">
-                    <span className="hbar-bar" style={{ width: `calc((100% - 44px) * ${d.value / max})` }} {...markProps(d)} />
+                    <span className={"hbar-bar" + (tip?.label === d.label ? " is-active" : "")} style={{ width: `calc((100% - 44px) * ${d.value / max})`, animationDelay: `${i * 70}ms` }} {...markProps(d)} />
                     <span className="hbar-value">{d.value.toLocaleString()}</span>
                   </div>
                 </div>
@@ -89,10 +89,10 @@ export default function BarChart({ title, subtitle, data, orientation = "horizon
                   <div className="vchart-grid" key={t} style={{ bottom: `${(t / top) * 100}%` }}><span>{t}</span></div>
                 ))}
                 <div className="vchart-cols">
-                  {data.map((d) => (
-                    <div className="vchart-col" key={d.label}>
+                  {data.map((d, i) => (
+                    <div className={"vchart-col" + (tip?.label === d.label ? " is-active" : "")} key={d.label}>
                       <span className="vchart-value">{d.value.toLocaleString()}</span>
-                      <span className="vchart-bar" style={{ height: `${(d.value / top) * 100}%` }} {...markProps(d)} />
+                      <span className={"vchart-bar" + (tip?.label === d.label ? " is-active" : "")} style={{ height: `${(d.value / top) * 100}%`, animationDelay: `${i * 70}ms` }} {...markProps(d)} />
                     </div>
                   ))}
                 </div>

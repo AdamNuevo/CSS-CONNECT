@@ -5,9 +5,47 @@ import Badge from "../components/Badge.jsx";
 import Avatar from "../components/Avatar.jsx";
 import RowMenu from "../components/RowMenu.jsx";
 import ConfirmDialog from "../components/ConfirmDialog.jsx";
+import EditPersonDialog from "../components/EditPersonDialog.jsx";
 import { useToast } from "../components/Toast.jsx";
 import { useStore } from "../store.jsx";
 import { PROGRAMS, ACAD_STATUSES, DEPARTMENTS, ACCOUNT_STATUSES } from "../data.js";
+import { toCsv, downloadCsv } from "../csv.js";
+
+// "BSIT 3-A" -> ["BSIT", "3", "A"]
+const splitSection = (s) => {
+  const [program, rest = ""] = s.split(" ");
+  const [year, ...section] = rest.split("-");
+  return [program, year, section.join("-")];
+};
+
+const EXPORT_COLUMNS = {
+  students: [
+    { header: "id_number", value: (r) => r.no },
+    { header: "full_name", value: (r) => r.name },
+    { header: "email", value: (r) => r.email },
+    { header: "program", value: (r) => splitSection(r.section)[0] },
+    { header: "year", value: (r) => splitSection(r.section)[1] },
+    { header: "section", value: (r) => splitSection(r.section)[2] },
+    { header: "academic_status", value: (r) => r.acad },
+    { header: "account_status", value: (r) => r.status },
+    { header: "date_added", value: (r) => r.created }
+  ],
+  faculty: [
+    { header: "id_number", value: (r) => r.no },
+    { header: "full_name", value: (r) => r.name },
+    { header: "email", value: (r) => r.email },
+    { header: "department", value: (r) => r.dept },
+    { header: "position", value: (r) => r.position },
+    { header: "specialization", value: (r) => r.spec },
+    { header: "account_status", value: (r) => r.status },
+    { header: "date_added", value: (r) => r.created }
+  ]
+};
+
+const SORT_OPTIONS = {
+  students: [["no", "Student no."], ["name", "Name"], ["section", "Section"], ["acad", "Academic status"], ["status", "Account"]],
+  faculty: [["no", "Faculty ID"], ["name", "Name"], ["dept", "Department"], ["position", "Position"], ["status", "Account"]]
+};
 
 const PAGE_SIZE = 10;
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
@@ -35,21 +73,26 @@ export default function People({ kind }) {
   const toast = useToast();
   const { students, faculty, applyAction, loading, error, reload } = useStore();
   const data = isStudents ? students : faculty;
-  const [params] = useSearchParams();
-  const q = (params.get("q") || "").trim().toLowerCase();
+  const [params, setParams] = useSearchParams();
+  const rawQ = params.get("q") || "";
+  const q = rawQ.trim().toLowerCase();
+  // same ?q= as the top bar search, so both boxes stay in sync
+  const setQ = (v) => setParams(v ? { q: v } : {}, { replace: true });
 
   const [f, setF] = useState({ a: "", b: "", c: "", d: "" });
   const [sort, setSort] = useState({ key: "no", dir: "asc" });
   const [page, setPage] = useState(1);
   const [confirm, setConfirm] = useState(null); // { type, person }
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(null); // the person being edited
 
   // each tab starts with a clean slate; any change to what's shown goes back to page 1
   useEffect(() => { setF({ a: "", b: "", c: "", d: "" }); setSort({ key: "no", dir: "asc" }); }, [kind]);
   useEffect(() => { setPage(1); }, [q, f, sort, kind]);
 
   const setFilter = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
-  const anyFilter = Object.values(f).some(Boolean);
+  const anyFilter = Object.values(f).some(Boolean) || Boolean(q);
+  const clearAll = () => { setF({ a: "", b: "", c: "", d: "" }); setQ(""); };
 
   const rows = useMemo(() => {
     const filtered = data.filter((d) => {
@@ -82,8 +125,8 @@ export default function People({ kind }) {
     const { type, person } = confirm;
     setBusy(true);
     try {
-      await applyAction(kind, person.no, type);
-      toast(ACTIONS[type].done(person.name));
+      const { emailed } = await applyAction(kind, person.no, type);
+      toast(ACTIONS[type].done(person.name) + (emailed ? `. New login details sent to ${person.email}` : ""));
     } catch (err) {
       toast(err.message, "error");
     } finally {
@@ -92,7 +135,14 @@ export default function People({ kind }) {
     }
   }
 
+  // exports exactly what the table is showing: current search, filters and sort order
+  function exportCsv() {
+    downloadCsv(`${kind}-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(rows, EXPORT_COLUMNS[kind]));
+    toast(`Exported ${rows.length.toLocaleString()} ${isStudents ? "students" : "faculty"}`);
+  }
+
   const menuFor = (p) => [
+    { label: "Edit details", onSelect: () => setEditing(p) },
     { label: "Reset password", onSelect: () => setConfirm({ type: "reset", person: p }) },
     p.status === "Deactivated"
       ? { label: "Reactivate account", onSelect: () => setConfirm({ type: "reactivate", person: p }) }
@@ -105,8 +155,14 @@ export default function People({ kind }) {
   return (
     <>
       <div className="page-head">
-        <p className="lead">Create, update and deactivate accounts</p>
-        <Link className="btn primary lg" to="/add"><Icon name="plus" />Add person</Link>
+        <div>
+          <h1 className="page-title">{isStudents ? "Students" : "Faculty"}</h1>
+          <p className="lead">Create, update and deactivate accounts</p>
+        </div>
+        <div className="actions">
+          <button className="btn lg" onClick={exportCsv} disabled={rows.length === 0}><Icon name="download" />Export CSV</button>
+          <Link className="btn primary lg" to="/add"><Icon name="plus" />Add person</Link>
+        </div>
       </div>
 
       <div className="tabs" role="tablist" aria-label="Account type">
@@ -116,6 +172,20 @@ export default function People({ kind }) {
 
       <section className="card flush">
         <div className="filters">
+          <label className="field-sm grow people-search">Search
+            <span className="search-box">
+              <Icon name="search" />
+              <input
+                className="input"
+                type="search"
+                placeholder={isStudents ? "Name, student number or email" : "Name, faculty ID or email"}
+                aria-label={isStudents ? "Search students" : "Search faculty"}
+                value={rawQ}
+                onChange={(e) => setQ(e.target.value)}
+              />
+              {rawQ && <button type="button" className="search-clear" onClick={() => setQ("")} aria-label="Clear search"><Icon name="x" /></button>}
+            </span>
+          </label>
           {isStudents ? (
             <>
               <label className="field-sm">Program
@@ -159,11 +229,22 @@ export default function People({ kind }) {
               </label>
             </>
           )}
-          {anyFilter && <button className="link clear" onClick={() => setF({ a: "", b: "", c: "", d: "" })}>Clear filters</button>}
+          {/* on phones the table headers are hidden, so sorting moves here */}
+          <label className="field-sm phone-only">Sort by
+            <select className="select" value={`${sort.key}:${sort.dir}`} onChange={(e) => { const [key, dir] = e.target.value.split(":"); setSort({ key, dir }); }}>
+              {SORT_OPTIONS[kind].map(([key, label]) => (
+                <optgroup key={key} label={label}>
+                  <option value={`${key}:asc`}>{label} (A to Z)</option>
+                  <option value={`${key}:desc`}>{label} (Z to A)</option>
+                </optgroup>
+              ))}
+            </select>
+          </label>
+          {anyFilter && <button className="link clear" onClick={clearAll}>Clear filters</button>}
         </div>
 
         <div className="table-scroll">
-          <table className="table">
+          <table className="table cards people">
             <caption className="sr-only">{isStudents ? "Student accounts" : "Faculty accounts"}</caption>
             <thead>
               {isStudents ? (
@@ -189,13 +270,13 @@ export default function People({ kind }) {
             <tbody>
               {visible.map((d) => (
                 <tr key={d.no} className={d.status === "Deactivated" ? "muted-row" : ""}>
-                  <td className="mono">{d.no}</td>
-                  <td><span className="person"><Avatar name={d.name} photo={d.photo} /><span>{d.name}<small>{d.email}</small></span></span></td>
-                  <td>{isStudents ? d.section : d.dept}</td>
+                  <td className="mono c-id">{d.no}</td>
+                  <td className="c-main"><span className="person"><Avatar name={d.name} photo={d.photo} /><span>{d.name}<small>{d.email}</small></span></span></td>
+                  <td className="c-meta">{isStudents ? d.section : d.dept}</td>
                   {isStudents
-                    ? <td><Badge status={d.acad} /></td>
-                    : <td>{d.position}<small className="sub">{d.spec}</small></td>}
-                  <td><Badge status={d.status} /></td>
+                    ? <td className="c-badge"><Badge status={d.acad} /></td>
+                    : <td className="c-meta">{d.position}<small className="sub">{d.spec}</small></td>}
+                  <td className="c-badge"><Badge status={d.status} /></td>
                   <td className="actions-cell"><RowMenu label={`Actions for ${d.name}`} items={menuFor(d)} /></td>
                 </tr>
               ))}
@@ -217,7 +298,7 @@ export default function People({ kind }) {
             <Icon name="search" />
             <strong>{data.length === 0 ? "No accounts yet" : "No matching accounts"}</strong>
             <p>{data.length === 0 ? "Import a CSV file or add a person to get started." : "Try a different search, or clear the filters."}</p>
-            {anyFilter && <button className="btn" onClick={() => setF({ a: "", b: "", c: "", d: "" })}>Clear filters</button>}
+            {anyFilter && <button className="btn" onClick={clearAll}>Clear filters</button>}
           </div>
         )}
 
@@ -231,6 +312,8 @@ export default function People({ kind }) {
         </div>
       </section>
 
+      <EditPersonDialog open={!!editing} kind={kind} person={editing} onClose={() => setEditing(null)} />
+
       <ConfirmDialog
         open={!!confirm}
         title={action?.title}
@@ -242,7 +325,7 @@ export default function People({ kind }) {
       >
         {confirm && (
           confirm.type === "reset"
-            ? <p><strong>{confirm.person.name}</strong> will get a new default password and must change it the next time they sign in.</p>
+            ? <p><strong>{confirm.person.name}</strong> will get a new default password. Ask them to change it after they sign in.</p>
             : confirm.type === "deactivate"
               ? <p><strong>{confirm.person.name}</strong> will no longer be able to sign in. You can reactivate the account later.</p>
               : <p><strong>{confirm.person.name}</strong> will be able to sign in again.</p>

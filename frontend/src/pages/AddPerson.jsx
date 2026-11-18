@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../components/Icon.jsx";
 import Avatar from "../components/Avatar.jsx";
+import Badge from "../components/Badge.jsx";
 import { useToast } from "../components/Toast.jsx";
 import { useStore } from "../store.jsx";
 import { PROGRAMS, ACAD_STATUSES, DEPARTMENTS } from "../data.js";
@@ -19,9 +20,9 @@ const EMPTY = {
   dept: DEPARTMENTS[0], position: "", spec: ""
 };
 
-function Field({ id, label, error, hint, children }) {
+function Field({ id, label, error, hint, className = "", children }) {
   return (
-    <div className="group">
+    <div className={"group " + className}>
       <label htmlFor={id}>{label}</label>
       {children}
       {error ? <p className="field-error" id={id + "-err"}>{error}</p> : hint ? <p className="field-hint">{hint}</p> : null}
@@ -71,10 +72,10 @@ export default function AddPerson() {
     if (!id) er.id = `Enter the ${CFG[role].label.toLowerCase()}.`;
     else if ([...students, ...faculty].some((p) => p.no.toLowerCase() === id.toLowerCase())) er.id = "This ID already has an account.";
     if (!form.name.trim()) er.name = "Enter the person's full name.";
-    if (!email) er.email = "Enter a university email.";
-    else if (!/^[^\s@]+@qcu\.edu\.ph$/i.test(email)) er.email = "Use a university email ending in @qcu.edu.ph.";
+    if (!email) er.email = "Enter an email address.";
+    else if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) er.email = "Enter a valid email, e.g. name@qcu.edu.ph or name@gmail.com.";
     else if ([...students, ...faculty].some((p) => p.email.toLowerCase() === email)) er.email = "This email already has an account.";
-    if (role === "Student" && !form.section.trim()) er.section = "Required.";
+    if (role === "Student" && !form.section.trim()) er.section = "Enter the section.";
     if (role === "Faculty" && !form.position.trim()) er.position = "Enter the academic position.";
     return er;
   }
@@ -97,8 +98,8 @@ export default function AddPerson() {
 
     setBusy(true);
     try {
-      await addPerson(payload);
-      toast(`${role} account created for ${form.name.trim()}`);
+      const created = await addPerson(payload);
+      toast(`${role} account created for ${form.name.trim()}` + (created.emailed ? `. Login details sent to ${created.email}` : ""));
       setForm(EMPTY);
       if (role === "Student") navigate("/students");
       if (role === "Faculty") navigate("/faculty");
@@ -114,14 +115,18 @@ export default function AddPerson() {
     <>
       <div className="page-head">
         <div>
-          <h2 className="page-title">Add person</h2>
+          <h1 className="page-title">Add person</h1>
           <p className="lead">Add one person, for example a late enrollee</p>
         </div>
       </div>
 
+      <div className="add-layout">
       <form className="card form-card" onSubmit={submit} noValidate>
-        <div className="group">
-          <span className="label">Role</span>
+        <section className="form-section" aria-labelledby="sec-role">
+          <div className="form-section-head">
+            <h2 id="sec-role">Role</h2>
+            <p>What kind of account is this?</p>
+          </div>
           <div className="seg wide" role="group" aria-label="Role">
             {Object.keys(CFG).map((r) => (
               <button
@@ -133,10 +138,18 @@ export default function AddPerson() {
               >{r}</button>
             ))}
           </div>
-        </div>
+        </section>
+
+        <section className="form-section" aria-labelledby="sec-basic">
+          <div className="form-section-head">
+            <h2 id="sec-basic">Basic information</h2>
+            <p>Their ID, name and email.</p>
+          </div>
 
         <div className="photo-pick">
-          <Avatar name={form.name || "?"} photo={form.photo} size="xl" />
+          {form.photo || form.name.trim()
+            ? <Avatar name={form.name} photo={form.photo} size="xl" />
+            : <span className="avatar xl blank"><Icon name="user" /></span>}
           <div>
             <span className="label">Profile picture <span className="optional">(optional)</span></span>
             <div className="photo-actions">
@@ -145,7 +158,7 @@ export default function AddPerson() {
               </button>
               {form.photo && <button type="button" className="link" onClick={() => setForm((f) => ({ ...f, photo: "" }))}>Remove</button>}
             </div>
-            <p className="field-hint">JPG or PNG, up to 2 MB</p>
+            <p className="field-hint">PNG, JPG, WebP or GIF, up to 2 MB</p>
           </div>
           <input type="file" ref={fileInput} accept="image/*" hidden onChange={pickPhoto} />
         </div>
@@ -157,10 +170,18 @@ export default function AddPerson() {
           <Field id="name" label="Full name" error={errors.name}>
             <input {...props("name")} placeholder="e.g. Juan Dela Cruz" autoComplete="off" />
           </Field>
-          <Field id="email" label="University email" error={errors.email} hint="Must end in @qcu.edu.ph">
-            <input {...props("email")} type="email" placeholder="name@qcu.edu.ph" autoComplete="off" />
+          <Field id="email" className="span-2" label="Email" error={errors.email} hint="University or personal email (e.g. Gmail)">
+            <input {...props("email")} type="email" placeholder="name@qcu.edu.ph or name@gmail.com" autoComplete="off" />
           </Field>
+        </div>
+        </section>
 
+        <section className="form-section" aria-labelledby="sec-details">
+          <div className="form-section-head">
+            <h2 id="sec-details">{role === "Student" ? "Academic details" : "Work details"}</h2>
+            <p>{role === "Student" ? "Where they are enrolled this semester." : "Where they teach or work in the college."}</p>
+          </div>
+        <div className="form-grid">
           {role === "Student" && (
             <>
               <Field id="program" label="Program">
@@ -170,7 +191,7 @@ export default function AddPerson() {
                 <select {...props("year")}>{[1, 2, 3, 4].map((y) => <option key={y} value={y}>Year {y}</option>)}</select>
               </Field>
               <Field id="section" label="Section" error={errors.section}>
-                <input {...props("section")} placeholder="A" maxLength={3} />
+                <input {...props("section")} placeholder="e.g. A" maxLength={3} />
               </Field>
               <Field id="acad" label="Academic status">
                 <select {...props("acad")}>{ACAD_STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
@@ -195,14 +216,40 @@ export default function AddPerson() {
             </>
           )}
         </div>
-
-        <div className="info"><Icon name="key" />A default password is created automatically. The person must change it the first time they sign in.</div>
+        </section>
 
         <div className="form-actions">
           <button type="button" className="btn lg" onClick={() => navigate(-1)}>Cancel</button>
           <button type="submit" className="btn primary lg" disabled={busy}>{busy ? "Creating…" : "Create account"}</button>
         </div>
       </form>
+
+      {/* live summary of the account being created, so the empty side of the page does real work */}
+      <aside className="card preview-card" aria-label="Account preview">
+        <span className="eyebrow">Preview</span>
+        <div className="preview-person">
+          {form.photo || form.name.trim()
+            ? <Avatar name={form.name} photo={form.photo} size="xl" />
+            : <span className="avatar xl blank"><Icon name="user" /></span>}
+          <strong>{form.name.trim() || `New ${role.toLowerCase()}`}</strong>
+          <small>{form.email.trim().toLowerCase() || "name@qcu.edu.ph"}</small>
+        </div>
+        <dl className="preview-list">
+          <div><dt>Role</dt><dd>{role}</dd></div>
+          <div><dt>{CFG[role].label}</dt><dd>{form.id.trim() || "—"}</dd></div>
+          {role === "Student"
+            ? <div><dt>Section</dt><dd>{form.section.trim() ? `${form.program} ${form.year}-${form.section.trim().toUpperCase()}` : "—"}</dd></div>
+            : <div><dt>Department</dt><dd>{form.dept}</dd></div>}
+          {role === "Faculty" && <div><dt>Position</dt><dd>{form.position.trim() || "—"}</dd></div>}
+          <div><dt>Account</dt><dd><Badge status="Not signed in" /></dd></div>
+        </dl>
+        <div className="pw-box">
+          <span className="pw-label"><Icon name="key" />Default password</span>
+          <code>Ccs@{form.id.trim() || "<ID number>"}</code>
+          <small>Give this to the person and ask them to change it after they first sign in.</small>
+        </div>
+      </aside>
+      </div>
     </>
   );
 }

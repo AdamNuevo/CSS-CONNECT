@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import { useToast } from "./Toast.jsx";
+import useModal from "./useModal.js";
 
 // Modal form for changing your own password.
 export default function PasswordDialog({ open, onClose }) {
@@ -9,26 +10,11 @@ export default function PasswordDialog({ open, onClose }) {
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const dialogRef = useRef();
-  const latest = useRef({ onClose, busy });
-  latest.current = { onClose, busy };
+  useModal({ open, ref: dialogRef, onClose, busy });
 
+  // start with an empty form every time it opens
   useEffect(() => {
-    if (!open) return;
-    setForm({ currentPassword: "", newPassword: "", confirm: "" });
-    setErrors({});
-    const previous = document.activeElement;
-    dialogRef.current?.querySelector("input")?.focus();
-    const onKey = (e) => {
-      if (e.key === "Escape" && !latest.current.busy) latest.current.onClose();
-      if (e.key === "Tab") {
-        const els = [...dialogRef.current.querySelectorAll("input, button:not([disabled])")];
-        const first = els[0], last = els[els.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("keydown", onKey); previous?.focus?.(); };
+    if (open) { setForm({ currentPassword: "", newPassword: "", confirm: "" }); setErrors({}); }
   }, [open]);
 
   if (!open) return null;
@@ -43,6 +29,8 @@ export default function PasswordDialog({ open, onClose }) {
     const er = {};
     if (!form.currentPassword) er.currentPassword = "Enter your current password.";
     if (form.newPassword.length < 8) er.newPassword = "Use at least 8 characters.";
+    else if (!/[A-Z]/.test(form.newPassword)) er.newPassword = "Add at least one uppercase letter.";
+    else if (!/[0-9]/.test(form.newPassword)) er.newPassword = "Add at least one number.";
     else if (form.newPassword === form.currentPassword) er.newPassword = "Choose a password you haven't used here.";
     if (form.confirm !== form.newPassword) er.confirm = "Passwords don't match.";
     if (Object.keys(er).length) return setErrors(er);

@@ -25,6 +25,7 @@ export default function Review() {
   const { fileName, rows } = state;
   const ready = rows.filter((r) => r.check === "Ready");
   const problems = rows.filter((r) => r.check !== "Ready");
+  const accounts = `${ready.length.toLocaleString()} ${ready.length === 1 ? "account" : "accounts"}`;
   const shown = filter === "ready" ? ready : filter === "fix" ? problems : rows;
 
   async function create() {
@@ -36,7 +37,7 @@ export default function Review() {
         body: { fileName, skipped: problems.length, rows: ready.map((r) => r.data) }
       });
       await reload();
-      toast(`${result.created} accounts created`);
+      toast(`${result.created} accounts created` + (result.emailing ? ". Login details are being emailed." : ""));
       navigate("/students");
     } catch (err) {
       toast(err.message, "error");
@@ -55,7 +56,7 @@ export default function Review() {
     <>
       <div className="page-head">
         <div>
-          <h2 className="page-title">Review import</h2>
+          <h1 className="page-title">Review import</h1>
           <p className="lead">Check the file before any accounts are created</p>
         </div>
         <Stepper steps={IMPORT_STEPS} current={2} />
@@ -108,20 +109,20 @@ export default function Review() {
           <span>Showing {shown.length.toLocaleString()} of {rows.length.toLocaleString()} rows</span>
           <div className="pager">
             <Link className="btn" to="/import">Change file</Link>
-            <button className="btn primary" disabled={ready.length === 0} onClick={() => setConfirming(true)}><Icon name="check" />Create {ready.length.toLocaleString()} accounts</button>
+            <button className="btn primary" disabled={ready.length === 0} onClick={() => setConfirming(true)}><Icon name="check" />Create {accounts}</button>
           </div>
         </div>
       </section>
 
       <ConfirmDialog
         open={confirming}
-        title={`Create ${ready.length.toLocaleString()} accounts?`}
-        confirmLabel={saving ? "Creating…" : `Create ${ready.length.toLocaleString()} accounts`}
+        title={`Create ${accounts}?`}
+        confirmLabel={saving ? "Creating…" : `Create ${accounts}`}
         busy={saving}
         onConfirm={create}
         onCancel={() => setConfirming(false)}
       >
-        <p>Each person gets a default password and must change it on first sign-in.{problems.length > 0 && <> {problems.length.toLocaleString()} rows with problems will be skipped.</>}</p>
+        <p>Each person gets a default password. Ask them to change it after they first sign in.{problems.length > 0 && <> {problems.length.toLocaleString()} {problems.length === 1 ? "row" : "rows"} with problems will be skipped.</>}</p>
       </ConfirmDialog>
     </>
   );

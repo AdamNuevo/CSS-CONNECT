@@ -1,14 +1,13 @@
-
-# CSS-CONNECT
-======= 
-# CCS Connect
+# CCS Hub
 
 A Centralized Data Governance and Academic Information Management System for the College of
 Computer Studies, Quezon City University.
 
-This repository currently contains the **registrar portal**: staff sign in, import or add student and
-faculty accounts, reset passwords, and activate or deactivate accounts. The other modules from the
-"Modules and Features" document are not built yet.
+This repository contains the **registrar portal** and the **dean portal**. In the registrar portal, staff
+sign in, import or add student and faculty accounts, edit details, export lists to CSV, reset passwords,
+and activate or deactivate accounts. New accounts can be **emailed their login details**, and anyone can
+use **Forgot password** to get a temporary password by email. Every change is recorded in an append-only
+**Activity log** (who, what, when).
 
 ## Tech stack
 
@@ -50,6 +49,25 @@ faculty so the screens aren't empty. Set it to `false` for an empty system.
 
 The seeded registrar and demo data are only created when the database is empty. Changing `.env`
 afterwards does not change existing accounts; use `down -v` to start over.
+
+### Email (optional)
+
+Login details and "Forgot password" temporary passwords are sent through [Brevo](https://www.brevo.com)
+(free, 300 emails a day). Without these settings the app still works; the registrar just hands out the
+default password (`Ccs@` + ID number) in person.
+
+1. Sign up at brevo.com, then open **SMTP & API → SMTP** and generate an SMTP key.
+2. In `.env` fill in `MAIL_USER` (the SMTP "Login", e.g. `xxxx@smtp-brevo.com`), `MAIL_PASSWORD`
+   (the SMTP key) and `MAIL_FROM` (the email you signed up with).
+3. Run `docker compose up -d --build`. The api log says `Email is on` when it works.
+
+Never commit `.env`. Share it privately if a teammate needs the same settings.
+
+### Signing in
+
+- **Keep me signed in** keeps the session for 30 days; otherwise it ends after 8 hours.
+- Signing in with a default or temporary password opens **Set password** first (8+ characters,
+  one uppercase letter, one number). The portal stays locked until it's done.
 
 ## Develop the frontend
 
