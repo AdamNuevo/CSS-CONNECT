@@ -37,7 +37,11 @@ const SHAPES = {
   briefcase: (<><rect x="2.5" y="5.5" width="11" height="8" rx="1.5" /><path d="M5.5 5.5V4a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.5M2.5 9.5h11" /></>),
   "book-open": (<><path d="M8 4.5C6.5 3.5 4 3.5 2.5 4.5V13c1.5-1 4-1 5.5 0 1.5-1 4-1 5.5 0V4.5C12 3.5 9.5 3.5 8 4.5z" /><path d="M8 4.5V13" /></>),
   "bar-chart": (<><path d="M3 13V3M3 13h10" /><rect x="5" y="8" width="2" height="5" /><rect x="9" y="5" width="2" height="8" /></>),
-  shield: (<><path d="M8 2 3 4v4c0 3 2.5 5.5 5 6 2.5-.5 5-3 5-6V4z" /></>)
+  shield: (<><path d="M8 2 3 4v4c0 3 2.5 5.5 5 6 2.5-.5 5-3 5-6V4z" /></>),
+  mail: (<><rect x="2" y="3.5" width="12" height="9" rx="1.5" /><path d="m2.5 4.5 5.5 4 5.5-4" /></>),
+  qr: (<><rect x="2.5" y="2.5" width="4" height="4" rx=".5" /><rect x="9.5" y="2.5" width="4" height="4" rx=".5" /><rect x="2.5" y="9.5" width="4" height="4" rx=".5" /><path d="M9.5 9.5h1.5v1.5M13.5 9.5v.01M9.5 13.5h.01M12 12h1.5v1.5" /></>),
+  "arrow-left": (<><path d="M13 8H3m0 0 4-4M3 8l4 4" /></>),
+  circle: (<><circle cx="8" cy="8" r="5" /></>)
 };
 
 export default function Icon({ name, className }) {

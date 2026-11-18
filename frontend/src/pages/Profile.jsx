@@ -63,7 +63,7 @@ export default function Profile() {
         </div>
         <dl className="info-grid">
           <div><dt>Full name</dt><dd>{user.name}</dd></div>
-          <div><dt>University email</dt><dd>{user.email}</dd></div>
+          <div><dt>Email</dt><dd>{user.email}</dd></div>
           <div><dt>Position</dt><dd>{user.role}</dd></div>
           <div><dt>Department</dt><dd>Registrar's Office</dd></div>        </dl>
       </section>

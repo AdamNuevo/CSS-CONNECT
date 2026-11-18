@@ -23,8 +23,14 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener("ccs:unauthorized", onUnauthorized);
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    const d = await api("/auth/login", { method: "POST", body: { email, password } });
+  const login = useCallback(async (email, password, remember = false) => {
+    const d = await api("/auth/login", { method: "POST", body: { email, password, remember } });
+    setUser(d.user); // user.mustChangePassword sends them to Set password first
+  }, []);
+
+  // Set password / Change password. Throws ApiError (with .fields) when the server rejects it.
+  const changePassword = useCallback(async (currentPassword, newPassword) => {
+    const d = await api("/auth/change-password", { method: "POST", body: { currentPassword, newPassword } });
     setUser(d.user);
   }, []);
 
@@ -38,6 +44,6 @@ export function AuthProvider({ children }) {
     setUser(d.user);
   }, []);
 
-  const value = useMemo(() => ({ user, loading, login, logout, setPhoto }), [user, loading, login, logout, setPhoto]);
+  const value = useMemo(() => ({ user, loading, login, logout, setPhoto, changePassword }), [user, loading, login, logout, setPhoto, changePassword]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

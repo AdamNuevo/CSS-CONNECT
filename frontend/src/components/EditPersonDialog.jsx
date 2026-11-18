@@ -120,7 +120,7 @@ export default function EditPersonDialog({ open, kind, person, onClose }) {
           <Field id="edit-name" label="Full name" error={errors.name}>
             <input {...input("name", { autoComplete: "off" })} data-autofocus />
           </Field>
-          <Field id="edit-email" label="University email" error={errors.email}>
+          <Field id="edit-email" label="Email" error={errors.email}>
             <input {...input("email", { type: "email", autoComplete: "off" })} />
           </Field>
 

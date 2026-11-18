@@ -48,6 +48,7 @@ export const ACTIVITY_TYPES = {
   deactivated: { label: "Deactivated", tone: "bad" },
   reactivated: { label: "Reactivated", tone: "ok" },
   password_changed: { label: "Password changed", tone: "idle" },
+  forgot_password: { label: "Forgot password", tone: "warn" },
   profile_photo: { label: "Profile photo", tone: "idle" }
 };
 

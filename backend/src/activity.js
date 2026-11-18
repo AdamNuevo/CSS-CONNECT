@@ -4,7 +4,7 @@ import { query } from "./db.js";
 // nothing in the API edits or deletes its rows.
 export const ACTIVITY_ACTIONS = [
   "sign_in", "person_added", "person_edited", "import",
-  "password_reset", "deactivated", "reactivated", "password_changed", "profile_photo"
+  "password_reset", "deactivated", "reactivated", "password_changed", "profile_photo", "forgot_password"
 ];
 
 const clean = (v, max) => (typeof v === "string" && v.trim() ? v.replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max) : null);

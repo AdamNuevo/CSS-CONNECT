@@ -3,6 +3,7 @@ import { query } from "../db.js";
 import { INSERT_ACCOUNT, accountParams } from "../migrate.js";
 import { validatePerson, validPhoto } from "../validate.js";
 import { logActivity } from "../activity.js";
+import { sendLoginDetails } from "../mail.js";
 
 const router = Router();
 
@@ -61,7 +62,8 @@ router.post("/people", async (req, res) => {
   const { rows: created } = await query(`select ${COLUMNS}, role from accounts where id = $1`, [rows[0].id]);
   const r = created[0];
   await logActivity(req.account, "person_added", { targetId: r.id_number, targetName: r.full_name, detail: r.role });
-  res.status(201).json(r.role === "Student" ? toStudent(r) : r.role === "Faculty" ? toFaculty(r) : toDean(r));
+  const emailed = await sendLoginDetails({ name: r.full_name, email: r.email, idNumber: r.id_number });
+  res.status(201).json({ ...(r.role === "Student" ? toStudent(r) : r.role === "Faculty" ? toFaculty(r) : toDean(r)), emailed });
 });
 
 // Edit a person's details. The ID number and role can't change (the ID is the key and the default
@@ -129,12 +131,15 @@ router.patch("/people/:idNumber/status", async (req, res) => {
   const { rows } = await query(
     `update accounts set status = $1${action.clearPassword ? ", password_hash = null" : ""}
      where lower(id_number) = lower($2) and role in ('Student', 'Faculty', 'Dean')
-     returning id_number, full_name, role`,
+     returning id_number, full_name, role, email`,
     [action.status, req.params.idNumber]
   );
   if (!rows.length) return res.status(404).json({ error: "Account not found." });
   await logActivity(req.account, action.log, { targetId: rows[0].id_number, targetName: rows[0].full_name, detail: rows[0].role });
-  res.json({ status: action.status });
+  const emailed = name === "reset"
+    ? await sendLoginDetails({ name: rows[0].full_name, email: rows[0].email, idNumber: rows[0].id_number }, "reset")
+    : false;
+  res.json({ status: action.status, emailed });
 });
 
 // Profile pictures live in the database as data URLs; serve them as real images.

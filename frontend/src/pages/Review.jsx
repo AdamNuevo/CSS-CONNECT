@@ -37,7 +37,7 @@ export default function Review() {
         body: { fileName, skipped: problems.length, rows: ready.map((r) => r.data) }
       });
       await reload();
-      toast(`${result.created} accounts created`);
+      toast(`${result.created} accounts created` + (result.emailing ? ". Login details are being emailed." : ""));
       navigate("/students");
     } catch (err) {
       toast(err.message, "error");

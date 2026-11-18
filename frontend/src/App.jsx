@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import DeanLayout from "./components/DeanLayout.jsx";
 import Login from "./pages/Login.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import SetPassword from "./pages/SetPassword.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import ImportPage from "./pages/ImportPage.jsx";
 import Review from "./pages/Review.jsx";
@@ -23,10 +25,14 @@ import DeanReports from "./pages/dean/DeanReports.jsx";
 import DeanAccess from "./pages/dean/DeanAccess.jsx";
 import { useAuth } from "./auth.jsx";
 
+// where a signed-in user belongs: Set password first if they used a temporary password
+const homeFor = (user) => (user.mustChangePassword ? "/set-password" : user.role === "Dean" ? "/dean/dashboard" : "/");
+
 // Require user to be a Registrar; if Dean, redirect to Dean portal
 function RequireRegistrar({ children }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
+  if (user.mustChangePassword) return <Navigate to="/set-password" replace />;
   if (user.role === "Dean") return <Navigate to="/dean/dashboard" replace />;
   if (user.role !== "Registrar") return <Navigate to="/login" replace />;
   return children;
@@ -36,6 +42,7 @@ function RequireRegistrar({ children }) {
 function RequireDean({ children }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
+  if (user.mustChangePassword) return <Navigate to="/set-password" replace />;
   if (user.role === "Registrar") return <Navigate to="/" replace />;
   if (user.role !== "Dean") return <Navigate to="/login" replace />;
   return children;
@@ -50,19 +57,11 @@ export default function App() {
   return (
     <Routes>
       {/* /login redirects according to role if already signed in */}
+      <Route path="/login" element={user ? <Navigate to={homeFor(user)} replace /> : <Login />} />
+      <Route path="/forgot-password" element={user ? <Navigate to={homeFor(user)} replace /> : <ForgotPassword />} />
       <Route
-        path="/login"
-        element={
-          user ? (
-            user.role === "Dean" ? (
-              <Navigate to="/dean/dashboard" replace />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          ) : (
-            <Login />
-          )
-        }
+        path="/set-password"
+        element={!user ? <Navigate to="/login" replace /> : user.mustChangePassword ? <SetPassword /> : <Navigate to={homeFor(user)} replace />}
       />
 
       {/* Registrar Portal routes — wrapped in Layout */}

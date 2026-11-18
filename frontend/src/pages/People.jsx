@@ -73,8 +73,11 @@ export default function People({ kind }) {
   const toast = useToast();
   const { students, faculty, applyAction, loading, error, reload } = useStore();
   const data = isStudents ? students : faculty;
-  const [params] = useSearchParams();
-  const q = (params.get("q") || "").trim().toLowerCase();
+  const [params, setParams] = useSearchParams();
+  const rawQ = params.get("q") || "";
+  const q = rawQ.trim().toLowerCase();
+  // same ?q= as the top bar search, so both boxes stay in sync
+  const setQ = (v) => setParams(v ? { q: v } : {}, { replace: true });
 
   const [f, setF] = useState({ a: "", b: "", c: "", d: "" });
   const [sort, setSort] = useState({ key: "no", dir: "asc" });
@@ -88,7 +91,8 @@ export default function People({ kind }) {
   useEffect(() => { setPage(1); }, [q, f, sort, kind]);
 
   const setFilter = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
-  const anyFilter = Object.values(f).some(Boolean);
+  const anyFilter = Object.values(f).some(Boolean) || Boolean(q);
+  const clearAll = () => { setF({ a: "", b: "", c: "", d: "" }); setQ(""); };
 
   const rows = useMemo(() => {
     const filtered = data.filter((d) => {
@@ -121,8 +125,8 @@ export default function People({ kind }) {
     const { type, person } = confirm;
     setBusy(true);
     try {
-      await applyAction(kind, person.no, type);
-      toast(ACTIONS[type].done(person.name));
+      const { emailed } = await applyAction(kind, person.no, type);
+      toast(ACTIONS[type].done(person.name) + (emailed ? `. New login details sent to ${person.email}` : ""));
     } catch (err) {
       toast(err.message, "error");
     } finally {
@@ -168,6 +172,20 @@ export default function People({ kind }) {
 
       <section className="card flush">
         <div className="filters">
+          <label className="field-sm grow people-search">Search
+            <span className="search-box">
+              <Icon name="search" />
+              <input
+                className="input"
+                type="search"
+                placeholder={isStudents ? "Name, student number or email" : "Name, faculty ID or email"}
+                aria-label={isStudents ? "Search students" : "Search faculty"}
+                value={rawQ}
+                onChange={(e) => setQ(e.target.value)}
+              />
+              {rawQ && <button type="button" className="search-clear" onClick={() => setQ("")} aria-label="Clear search"><Icon name="x" /></button>}
+            </span>
+          </label>
           {isStudents ? (
             <>
               <label className="field-sm">Program
@@ -222,7 +240,7 @@ export default function People({ kind }) {
               ))}
             </select>
           </label>
-          {anyFilter && <button className="link clear" onClick={() => setF({ a: "", b: "", c: "", d: "" })}>Clear filters</button>}
+          {anyFilter && <button className="link clear" onClick={clearAll}>Clear filters</button>}
         </div>
 
         <div className="table-scroll">
@@ -280,7 +298,7 @@ export default function People({ kind }) {
             <Icon name="search" />
             <strong>{data.length === 0 ? "No accounts yet" : "No matching accounts"}</strong>
             <p>{data.length === 0 ? "Import a CSV file or add a person to get started." : "Try a different search, or clear the filters."}</p>
-            {anyFilter && <button className="btn" onClick={() => setF({ a: "", b: "", c: "", d: "" })}>Clear filters</button>}
+            {anyFilter && <button className="btn" onClick={clearAll}>Clear filters</button>}
           </div>
         )}
 

@@ -29,6 +29,8 @@ export default function PasswordDialog({ open, onClose }) {
     const er = {};
     if (!form.currentPassword) er.currentPassword = "Enter your current password.";
     if (form.newPassword.length < 8) er.newPassword = "Use at least 8 characters.";
+    else if (!/[A-Z]/.test(form.newPassword)) er.newPassword = "Add at least one uppercase letter.";
+    else if (!/[0-9]/.test(form.newPassword)) er.newPassword = "Add at least one number.";
     else if (form.newPassword === form.currentPassword) er.newPassword = "Choose a password you haven't used here.";
     if (form.confirm !== form.newPassword) er.confirm = "Passwords don't match.";
     if (Object.keys(er).length) return setErrors(er);

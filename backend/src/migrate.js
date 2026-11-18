@@ -155,6 +155,10 @@ export const accountParams = (p, status = "Not signed in", created = null) => [
 
 export async function migrate() {
   await query(SCHEMA);
+  // "Forgot password" gives a random temporary password that works next to the real one for 24 hours
+  await query(`
+    alter table accounts add column if not exists temp_password_hash text;
+    alter table accounts add column if not exists temp_expires_at timestamptz;`);
 
   const { rows: reg } = await query("select 1 from accounts where role = 'Registrar' limit 1");
   if (!reg.length) {

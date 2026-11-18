@@ -95,7 +95,7 @@ export default function ImportPage() {
           <div className="card-head"><h2>How it works</h2></div>
           <ol className="steps">
             <li><span className="step-n">1</span><div><strong>Download the template</strong><small>Students need program (BSIT, BSIS, BSCS), year and section. Faculty and dean rows need a department.</small></div></li>
-            <li><span className="step-n">2</span><div><strong>Fill in the list</strong><small>Use the official list from the registrar. One row per person, all emails ending in @qcu.edu.ph.</small></div></li>
+            <li><span className="step-n">2</span><div><strong>Fill in the list</strong><small>Use the official list from the registrar. One row per person. Emails can be university (@qcu.edu.ph) or personal, like Gmail.</small></div></li>
             <li><span className="step-n">3</span><div><strong>Upload and review</strong><small>We check every row before anything is created.</small></div></li>
             <li><span className="step-n">4</span><div><strong>Confirm</strong><small>Accounts are created with a default password. Ask users to change it after they first sign in.</small></div></li>
           </ol>

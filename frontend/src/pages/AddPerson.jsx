@@ -72,8 +72,8 @@ export default function AddPerson() {
     if (!id) er.id = `Enter the ${CFG[role].label.toLowerCase()}.`;
     else if ([...students, ...faculty].some((p) => p.no.toLowerCase() === id.toLowerCase())) er.id = "This ID already has an account.";
     if (!form.name.trim()) er.name = "Enter the person's full name.";
-    if (!email) er.email = "Enter a university email.";
-    else if (!/^[^\s@]+@qcu\.edu\.ph$/i.test(email)) er.email = "Use a university email ending in @qcu.edu.ph.";
+    if (!email) er.email = "Enter an email address.";
+    else if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)) er.email = "Enter a valid email, e.g. name@qcu.edu.ph or name@gmail.com.";
     else if ([...students, ...faculty].some((p) => p.email.toLowerCase() === email)) er.email = "This email already has an account.";
     if (role === "Student" && !form.section.trim()) er.section = "Enter the section.";
     if (role === "Faculty" && !form.position.trim()) er.position = "Enter the academic position.";
@@ -98,8 +98,8 @@ export default function AddPerson() {
 
     setBusy(true);
     try {
-      await addPerson(payload);
-      toast(`${role} account created for ${form.name.trim()}`);
+      const created = await addPerson(payload);
+      toast(`${role} account created for ${form.name.trim()}` + (created.emailed ? `. Login details sent to ${created.email}` : ""));
       setForm(EMPTY);
       if (role === "Student") navigate("/students");
       if (role === "Faculty") navigate("/faculty");
@@ -143,7 +143,7 @@ export default function AddPerson() {
         <section className="form-section" aria-labelledby="sec-basic">
           <div className="form-section-head">
             <h2 id="sec-basic">Basic information</h2>
-            <p>Their ID, name and university email.</p>
+            <p>Their ID, name and email.</p>
           </div>
 
         <div className="photo-pick">
@@ -170,8 +170,8 @@ export default function AddPerson() {
           <Field id="name" label="Full name" error={errors.name}>
             <input {...props("name")} placeholder="e.g. Juan Dela Cruz" autoComplete="off" />
           </Field>
-          <Field id="email" className="span-2" label="University email" error={errors.email} hint="Must end in @qcu.edu.ph">
-            <input {...props("email")} type="email" placeholder="name@qcu.edu.ph" autoComplete="off" />
+          <Field id="email" className="span-2" label="Email" error={errors.email} hint="University or personal email (e.g. Gmail)">
+            <input {...props("email")} type="email" placeholder="name@qcu.edu.ph or name@gmail.com" autoComplete="off" />
           </Field>
         </div>
         </section>
