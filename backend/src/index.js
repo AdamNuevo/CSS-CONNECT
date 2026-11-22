@@ -9,6 +9,7 @@ import peopleRoutes from "./routes/people.js";
 import importRoutes from "./routes/import.js";
 import activityRoutes from "./routes/activity.js";
 import deanRoutes from "./routes/dean.js";
+import mobileRoutes from "./routes/mobile.js";
 
 const required = ["DATABASE_URL", "JWT_SECRET"];
 for (const key of required) {
@@ -39,6 +40,7 @@ app.get("/api/photos/:idNumber", async (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/dean", deanRoutes);
+app.use("/api/v1", mobileRoutes); // student / faculty phone app (Bearer tokens)
 app.use("/api", requireRegistrar, peopleRoutes, importRoutes, activityRoutes);
 
 app.use("/api", (req, res) => res.status(404).json({ error: "Not found." }));

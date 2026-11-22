@@ -39,11 +39,35 @@ services:
       APP_URL: ${APP_URL:-http://localhost:8080}
     # not published: only the web container can reach the API
 
+  # The student/faculty phone app's backend (code from the CSS-CONNECT-APP repo cloned into ./app).
+  # It uses this same database (schema "app"); people come from the registrar's accounts.
+  app-api:
+    build:
+      context: ./app
+      dockerfile: ../app-api/Dockerfile
+      additional_contexts:
+        integration: ./app-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgres://ccs:${DB_PASSWORD}@db:5432/ccs_connect?options=-c%20search_path%3Dapp
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      SEED_DEMO: ${SEED_DEMO:-false}
+      CORS_ORIGINS: ${APP_CORS_ORIGINS:-http://localhost:8081,http://localhost:19006}
+    # not published: only the web container can reach it
+
   web:
     build: ./frontend
     restart: unless-stopped
     depends_on:
       - api
+      - app-api
     ports:
       - "${WEB_PORT:-8080}:80"
 

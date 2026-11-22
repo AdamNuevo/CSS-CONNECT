@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { pool, query } from "./db.js";
-import { demoPeople } from "./demo.js";
+import { demoPeople, appDemoPeople, APP_DEMO_PASSWORD } from "./demo.js";
 
 const SCHEMA = `
 create table if not exists accounts (
@@ -138,6 +138,66 @@ create table if not exists events (
 );
 `;
 
+
+// ---- Student/Faculty app link -------------------------------------------------------------
+// The phone app's own tables live in the "app" schema of this same database. Every Student,
+// Faculty and Dean account is copied into app.users by the trigger below, so the registrar stays
+// the one place where people are created. The trigger does nothing until the app has created
+// app.users, and it never blocks a registrar action if the copy fails.
+const APP_LINK = `
+create schema if not exists app;
+alter table accounts add column if not exists app_user_id uuid;
+
+create or replace function sync_app_user() returns trigger language plpgsql as $fn$
+declare
+  nm text; w text[]; n int; fn text; ln text; r text; uid uuid; yl text;
+begin
+  if NEW.role not in ('Student', 'Faculty', 'Dean') or to_regclass('app.users') is null then
+    return NEW;
+  end if;
+  begin
+    r := case NEW.role when 'Student' then 'student' when 'Faculty' then 'faculty' else 'admin' end;
+    nm := trim(regexp_replace(NEW.full_name, '^(dr|mr|ms|mrs|engr|prof|atty)[.]?[[:space:]]+', '', 'i'));
+    w := regexp_split_to_array(nm, '[[:space:]]+');
+    n := coalesce(array_length(w, 1), 1);
+    if n = 1 then
+      fn := w[1]; ln := '';
+    elsif n >= 3 and lower(w[n - 1]) in ('dela', 'de', 'del', 'delos', 'la') then
+      fn := array_to_string(w[1:n - 2], ' '); ln := w[n - 1] || ' ' || w[n];
+    else
+      fn := array_to_string(w[1:n - 1], ' '); ln := w[n];
+    end if;
+    yl := case NEW.year_level when 1 then '1st Year' when 2 then '2nd Year' when 3 then '3rd Year'
+                              when 4 then '4th Year' else null end;
+
+    uid := NEW.app_user_id;
+    if uid is null then
+      select id into uid from app.users where lower(email) = lower(NEW.email);
+    end if;
+    if uid is null then
+      insert into app.users (email, password_hash, role, first_name, last_name, is_active)
+      values (NEW.email, '!', r::app.user_role, fn, ln, true) returning id into uid;
+    end if;
+    update app.users set
+      email = NEW.email, role = r::app.user_role, first_name = fn, last_name = ln,
+      student_number = case when NEW.role = 'Student' then left(NEW.id_number, 20) end,
+      employee_number = case when NEW.role = 'Faculty' then left(NEW.id_number, 20) end,
+      program = NEW.program, year_level = yl, section = NEW.section,
+      is_active = (NEW.status <> 'Deactivated'), updated_at = now()
+    where id = uid;
+    NEW.app_user_id := uid;
+  exception when others then
+    raise warning 'sync_app_user failed for %: %', NEW.email, sqlerrm;
+  end;
+  return NEW;
+end
+$fn$;
+
+drop trigger if exists accounts_sync_app_user on accounts;
+create trigger accounts_sync_app_user before insert or update on accounts
+  for each row execute function sync_app_user();
+`;
+
 export const INSERT_ACCOUNT = `
   insert into accounts
     (id_number, full_name, email, role, status, program, year_level, section, acad_status, department, position, specialization, photo, created_at)
@@ -159,6 +219,8 @@ export async function migrate() {
   await query(`
     alter table accounts add column if not exists temp_password_hash text;
     alter table accounts add column if not exists temp_expires_at timestamptz;`);
+
+  await query(APP_LINK);
 
   const { rows: reg } = await query("select 1 from accounts where role = 'Registrar' limit 1");
   if (!reg.length) {
@@ -199,6 +261,13 @@ export async function migrate() {
       } finally {
         client.release();
       }
+    }
+
+    // The people the phone app's demo data belongs to (own password so the app can be tried at once)
+    const appHash = await bcrypt.hash(APP_DEMO_PASSWORD, 10);
+    for (const p of appDemoPeople()) {
+      const { rows: added } = await query(INSERT_ACCOUNT, accountParams(p, "Activated", p.created));
+      if (added.length) await query("update accounts set password_hash = $1 where id = $2", [appHash, added[0].id]);
     }
 
     // Seed Dean-portal tables

@@ -91,3 +91,21 @@ export const demoPeople = () => {
     return { ...p, email };
   });
 };
+
+// The people the phone app's demo data (schedule, grades, consultations...) is written for.
+// They are added next to the other demo accounts and share one demo password (see migrate.js).
+export const APP_DEMO_PASSWORD = "TempPass1!";
+export const appDemoPeople = () => [
+  ["EMP-2018-001", "Jose Reyes", "jose.reyes@ccs.qcu.edu.ph", "IT Program", "Associate Professor", "Software Engineering"],
+  ["EMP-2019-002", "Ana Dela Cruz", "ana.delacruz@ccs.qcu.edu.ph", "CS Program", "Assistant Professor", "Data Analysis"],
+  ["EMP-2020-003", "Ramon Garcia", "ramon.garcia@ccs.qcu.edu.ph", "IS Program", "Instructor", "Databases"]
+].map(([id, name, email, dept, position, spec]) => ({ role: "Faculty", id, name, email, dept, position, spec, status: "Activated", created: "2026-10-01" }))
+  .concat([
+    ["2022-00001", "Kristine Villanueva", "BSIT", 3], ["2022-00002", "Mark Ramos", "BSIT", 3],
+    ["2022-00003", "Jessa Aquino", "BSCS", 3], ["2023-00001", "Carlo Mendoza", "BSIT", 2],
+    ["2023-00002", "Patricia Flores", "BSCS", 2], ["2024-00001", "Angelo Cruz", "BSIT", 1],
+    ["2021-00001", "Sophia Lim", "BSCS", 4], ["2021-00002", "Ryan Pascual", "BSIT", 4]
+  ].map(([id, name, program, year]) => ({
+    role: "Student", id, name, program, year, section: "A", acad: "Regular", status: "Activated", created: "2026-10-01",
+    email: `${name.split(" ")[0]}.${name.split(" ")[1]}@students.qcu.edu.ph`.toLowerCase()
+  })));
